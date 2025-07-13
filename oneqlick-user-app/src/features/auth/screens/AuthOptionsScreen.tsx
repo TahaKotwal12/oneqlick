@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -16,6 +17,8 @@ import { SocialLoginButton } from '../components/SocialLoginButton';
 import { theme } from '../../../theme/theme';
 
 type AuthOptionsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AuthOptions'>;
+
+const { width } = Dimensions.get('window');
 
 export const AuthOptionsScreen: React.FC = () => {
   const navigation = useNavigation<AuthOptionsScreenNavigationProp>();
@@ -46,20 +49,24 @@ export const AuthOptionsScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.logoContainer}>
-          <Logo size={120} />
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Logo size={80} />
+          </View>
           <Text style={styles.title}>Join OneQlick</Text>
           <Text style={styles.subtitle}>
             Sign up or sign in to start ordering your favorite food
           </Text>
         </View>
 
-        <View style={styles.buttonContainer}>
+        {/* Main Buttons Section */}
+        <View style={styles.mainButtons}>
           <CustomButton
-            title="Sign Up"
+            title="Create Account"
             onPress={handleSignUp}
             size="large"
-            style={styles.button}
+            style={styles.primaryButton}
           />
           
           <CustomButton
@@ -67,15 +74,19 @@ export const AuthOptionsScreen: React.FC = () => {
             onPress={handleSignIn}
             variant="outline"
             size="large"
-            style={styles.button}
+            style={styles.secondaryButton}
           />
+        </View>
 
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.divider} />
-          </View>
+        {/* Divider */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>or continue with</Text>
+          <View style={styles.divider} />
+        </View>
 
+        {/* Social Login Section */}
+        <View style={styles.socialSection}>
           <SocialLoginButton
             provider="google"
             onPress={handleGoogleSignIn}
@@ -87,6 +98,13 @@ export const AuthOptionsScreen: React.FC = () => {
             onPress={handleAppleSignIn}
             style={styles.socialButton}
           />
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -103,34 +121,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.xl,
   },
-  logoContainer: {
+  header: {
     alignItems: 'center',
     marginBottom: theme.spacing.xxl,
+    paddingTop: theme.spacing.lg,
+  },
+  logoContainer: {
+    marginBottom: theme.spacing.lg,
   },
   title: {
-    ...theme.typography.h2,
+    fontSize: 28,
+    fontWeight: '700' as const,
     color: theme.colors.textPrimary,
     textAlign: 'center',
-    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.sm,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    paddingHorizontal: theme.spacing.md,
   },
-  buttonContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  mainButtons: {
+    marginBottom: theme.spacing.xl,
   },
-  button: {
+  primaryButton: {
     marginBottom: theme.spacing.md,
+    backgroundColor: theme.colors.primary,
+  },
+  secondaryButton: {
+    marginBottom: theme.spacing.lg,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
   },
   divider: {
     flex: 1,
@@ -138,11 +167,27 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
   },
   dividerText: {
-    ...theme.typography.caption,
+    fontSize: 14,
+    fontWeight: '500' as const,
     color: theme.colors.textSecondary,
-    marginHorizontal: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
+  },
+  socialSection: {
+    marginBottom: theme.spacing.xl,
   },
   socialButton: {
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingTop: theme.spacing.lg,
+  },
+  footerText: {
+    fontSize: 12,
+    fontWeight: '400' as const,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: theme.spacing.lg,
   },
 }); 

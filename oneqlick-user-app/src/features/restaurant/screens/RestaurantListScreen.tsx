@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/types';
 import { CustomButton } from '../../../components/CustomButton';
+import { Icon, Icons } from '../../../components/Icon';
 import { theme } from '../../../theme/theme';
 
 type RestaurantListScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RestaurantList'>;
@@ -39,8 +40,16 @@ export const RestaurantListScreen: React.FC = () => {
 
         <View style={styles.content}>
           <View style={styles.restaurantCard}>
-            <Text style={styles.restaurantName}>🍕 Pizza Palace</Text>
-            <Text style={styles.restaurantInfo}>Italian • 4.5 ⭐ • 15-25 min</Text>
+            <View style={styles.restaurantHeader}>
+              <Icon name={Icons.restaurant} size={24} color={theme.colors.primary} />
+              <Text style={styles.restaurantName}>Pizza Palace</Text>
+            </View>
+            <View style={styles.restaurantInfo}>
+              <View style={styles.infoRow}>
+                <Icon name={Icons.star} size={16} color={theme.colors.warning} />
+                <Text style={styles.infoText}>4.5 • Italian • 15-25 min</Text>
+              </View>
+            </View>
             <CustomButton
               title="View Menu"
               onPress={() => handleRestaurantPress('pizza-palace')}
@@ -50,8 +59,16 @@ export const RestaurantListScreen: React.FC = () => {
           </View>
 
           <View style={styles.restaurantCard}>
-            <Text style={styles.restaurantName}>🍔 Burger House</Text>
-            <Text style={styles.restaurantInfo}>American • 4.2 ⭐ • 20-30 min</Text>
+            <View style={styles.restaurantHeader}>
+              <Icon name={Icons.restaurant} size={24} color={theme.colors.secondary} />
+              <Text style={styles.restaurantName}>Burger House</Text>
+            </View>
+            <View style={styles.restaurantInfo}>
+              <View style={styles.infoRow}>
+                <Icon name={Icons.star} size={16} color={theme.colors.warning} />
+                <Text style={styles.infoText}>4.2 • American • 20-30 min</Text>
+              </View>
+            </View>
             <CustomButton
               title="View Menu"
               onPress={() => handleRestaurantPress('burger-house')}
@@ -61,8 +78,16 @@ export const RestaurantListScreen: React.FC = () => {
           </View>
 
           <View style={styles.restaurantCard}>
-            <Text style={styles.restaurantName}>🍜 Sushi Express</Text>
-            <Text style={styles.restaurantInfo}>Japanese • 4.7 ⭐ • 25-35 min</Text>
+            <View style={styles.restaurantHeader}>
+              <Icon name={Icons.restaurant} size={24} color={theme.colors.success} />
+              <Text style={styles.restaurantName}>Sushi Express</Text>
+            </View>
+            <View style={styles.restaurantInfo}>
+              <View style={styles.infoRow}>
+                <Icon name={Icons.star} size={16} color={theme.colors.warning} />
+                <Text style={styles.infoText}>4.7 • Japanese • 25-35 min</Text>
+              </View>
+            </View>
             <CustomButton
               title="View Menu"
               onPress={() => handleRestaurantPress('sushi-express')}
@@ -91,16 +116,19 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   title: {
-    ...theme.typography.h2,
+    fontSize: 28,
+    fontWeight: '700' as const,
     color: theme.colors.textPrimary,
     textAlign: 'center',
     marginBottom: theme.spacing.sm,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   content: {
     flex: 1,
@@ -112,15 +140,29 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     ...theme.shadows.small,
   },
+  restaurantHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
   restaurantName: {
-    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '600' as const,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
+    marginLeft: theme.spacing.sm,
   },
   restaurantInfo: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.md,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoText: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    color: theme.colors.textSecondary,
+    marginLeft: theme.spacing.xs,
   },
   viewButton: {
     alignSelf: 'flex-start',

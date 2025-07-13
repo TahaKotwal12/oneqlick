@@ -7,11 +7,13 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/types';
 import { CustomButton } from '../../../components/CustomButton';
+import { Icon, Icons } from '../../../components/Icon';
 import { useAuth } from '../hooks/useAuth';
 import { theme } from '../../../theme/theme';
 
@@ -54,50 +56,97 @@ export const DashboardScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>
-            Welcome back, {user?.name || 'User'}! 👋
-          </Text>
+          <View style={styles.welcomeSection}>
+            <Icon name={Icons.person} size={24} color={theme.colors.primary} />
+            <Text style={styles.welcomeText}>
+              Welcome back, {user?.name || 'User'}!
+            </Text>
+          </View>
           <Text style={styles.subtitle}>
             You have successfully signed in to OneQlick
           </Text>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>🎉 Authentication Successful!</Text>
-            <Text style={styles.cardText}>
-              This is your dashboard screen. Here you would typically see:
-            </Text>
-            <View style={styles.featureList}>
-              <Text style={styles.featureItem}>• Restaurant listings</Text>
-              <Text style={styles.featureItem}>• Menu browsing</Text>
-              <Text style={styles.featureItem}>• Order tracking</Text>
-              <Text style={styles.featureItem}>• Payment methods</Text>
-              <Text style={styles.featureItem}>• Order history</Text>
-            </View>
-          </View>
-
-          <View style={styles.userInfo}>
-            <Text style={styles.userInfoTitle}>Your Account Details:</Text>
-            <Text style={styles.userInfoText}>Name: {user?.name}</Text>
-            <Text style={styles.userInfoText}>Email: {user?.email}</Text>
-            {user?.phone && (
-              <Text style={styles.userInfoText}>Phone: {user.phone}</Text>
-            )}
-          </View>
-
-          <View style={styles.dummyContent}>
-            <Text style={styles.dummyTitle}>📱 App Features Coming Soon</Text>
-            <Text style={styles.dummyText}>
-              This is a demo version with authentication functionality. 
-              The full app will include restaurant discovery, menu ordering, 
-              real-time tracking, and secure payments.
-            </Text>
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionGrid}>
+            <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('RestaurantList')}>
+              <Icon name={Icons.restaurant} size={32} color={theme.colors.primary} />
+              <Text style={styles.actionText}>Browse Restaurants</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionCard}>
+              <Icon name={Icons.search} size={32} color={theme.colors.secondary} />
+              <Text style={styles.actionText}>Search Food</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionCard}>
+              <Icon name={Icons.cart} size={32} color={theme.colors.success} />
+              <Text style={styles.actionText}>My Orders</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionCard}>
+              <Icon name={Icons.heart} size={32} color={theme.colors.error} />
+              <Text style={styles.actionText}>Favorites</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.buttonContainer}>
+        {/* User Info Card */}
+        <View style={styles.userInfoCard}>
+          <View style={styles.cardHeader}>
+            <Icon name={Icons.person} size={20} color={theme.colors.primary} />
+            <Text style={styles.cardTitle}>Account Details</Text>
+          </View>
+          <View style={styles.userDetails}>
+            <View style={styles.detailRow}>
+              <Icon name={Icons.person} size={16} color={theme.colors.textSecondary} />
+              <Text style={styles.detailText}>Name: {user?.name}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Icon name={Icons.mail} size={16} color={theme.colors.textSecondary} />
+              <Text style={styles.detailText}>Email: {user?.email}</Text>
+            </View>
+            {user?.phone && (
+              <View style={styles.detailRow}>
+                <Icon name={Icons.time} size={16} color={theme.colors.textSecondary} />
+                <Text style={styles.detailText}>Phone: {user.phone}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Features Preview */}
+        <View style={styles.featuresCard}>
+          <View style={styles.cardHeader}>
+            <Icon name={Icons.info} size={20} color={theme.colors.secondary} />
+            <Text style={styles.cardTitle}>App Features</Text>
+          </View>
+          <View style={styles.featuresList}>
+            <View style={styles.featureRow}>
+              <Icon name={Icons.restaurant} size={16} color={theme.colors.success} />
+              <Text style={styles.featureText}>Restaurant Discovery</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Icon name={Icons.delivery} size={16} color={theme.colors.success} />
+              <Text style={styles.featureText}>Fast Delivery</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Icon name={Icons.payment} size={16} color={theme.colors.success} />
+              <Text style={styles.featureText}>Secure Payments</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Icon name={Icons.star} size={16} color={theme.colors.success} />
+              <Text style={styles.featureText}>Reviews & Ratings</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Actions */}
+        <View style={styles.actions}>
           <CustomButton
             title="Browse Restaurants"
             onPress={() => navigation.navigate('RestaurantList')}
@@ -133,80 +182,108 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
   },
-  welcomeText: {
-    ...theme.typography.h2,
-    color: theme.colors.textPrimary,
-    textAlign: 'center',
+  welcomeSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: theme.spacing.sm,
   },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: theme.colors.textPrimary,
+    marginLeft: theme.spacing.sm,
+  },
   subtitle: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
-  content: {
-    flex: 1,
+  quickActions: {
+    marginBottom: theme.spacing.xl,
   },
-  card: {
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  actionCard: {
+    width: '48%',
     backgroundColor: theme.colors.mutedBg,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: theme.colors.textPrimary,
+    marginTop: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  userInfoCard: {
+    backgroundColor: theme.colors.primaryLight,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
     ...theme.shadows.small,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
   cardTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.md,
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: theme.colors.primaryDark,
+    marginLeft: theme.spacing.sm,
   },
-  cardText: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.md,
-    lineHeight: 22,
-  },
-  featureList: {
+  userDetails: {
     marginTop: theme.spacing.sm,
   },
-  featureItem: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: theme.spacing.xs,
   },
-  userInfo: {
-    backgroundColor: theme.colors.primaryLight,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-  },
-  userInfoTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primaryDark,
-    marginBottom: theme.spacing.md,
-  },
-  userInfoText: {
-    ...theme.typography.body,
+  detailText: {
+    fontSize: 14,
+    fontWeight: '400' as const,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
+    marginLeft: theme.spacing.sm,
   },
-  dummyContent: {
+  featuresCard: {
     backgroundColor: theme.colors.secondaryLight,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
+    ...theme.shadows.small,
   },
-  dummyTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.secondaryDark,
-    marginBottom: theme.spacing.md,
+  featuresList: {
+    marginTop: theme.spacing.sm,
   },
-  dummyText: {
-    ...theme.typography.body,
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  featureText: {
+    fontSize: 14,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
-    lineHeight: 22,
+    marginLeft: theme.spacing.sm,
   },
-  buttonContainer: {
+  actions: {
     marginTop: theme.spacing.lg,
   },
   browseButton: {

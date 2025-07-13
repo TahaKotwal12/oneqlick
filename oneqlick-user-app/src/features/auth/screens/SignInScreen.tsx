@@ -7,6 +7,8 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -85,65 +87,88 @@ export const SignInScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>
-            Sign in to continue ordering your favorite food
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-          <CustomInput
-            label="Email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-            keyboardType="email-address"
-            error={errors.email}
-          />
-
-          <CustomInput
-            label="Password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChangeText={(text) => setFormData({ ...formData, password: text })}
-            secureTextEntry
-            error={errors.password}
-          />
-
-          <CustomButton
-            title="Forgot Password?"
-            onPress={handleForgotPassword}
-            variant="outline"
-            size="small"
-            style={styles.forgotPasswordButton}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            title="Sign In"
-            onPress={handleSignIn}
-            loading={isLoading}
-            size="large"
-            style={styles.signInButton}
-          />
-
-          <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Don't have an account? </Text>
-            <CustomButton
-              title="Sign Up"
-              onPress={handleSignUp}
-              variant="outline"
-              size="small"
-            />
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>
+              Sign in to continue ordering your favorite food
+            </Text>
           </View>
-        </View>
-      </ScrollView>
+
+          {/* Form */}
+          <View style={styles.form}>
+            <CustomInput
+              label="Email Address"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
+              keyboardType="email-address"
+              error={errors.email}
+            />
+
+            <CustomInput
+              label="Password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChangeText={(text) => setFormData({ ...formData, password: text })}
+              secureTextEntry
+              error={errors.password}
+            />
+
+            <View style={styles.forgotPasswordContainer}>
+              <CustomButton
+                title="Forgot Password?"
+                onPress={handleForgotPassword}
+                variant="outline"
+                size="small"
+                style={styles.forgotPasswordButton}
+              />
+            </View>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <CustomButton
+              title="Sign In"
+              onPress={handleSignIn}
+              loading={isLoading}
+              size="large"
+              style={styles.signInButton}
+            />
+
+            <View style={styles.signUpContainer}>
+              <Text style={styles.signUpText}>Don't have an account? </Text>
+              <CustomButton
+                title="Sign Up"
+                onPress={handleSignUp}
+                variant="outline"
+                size="small"
+              />
+            </View>
+          </View>
+
+          {/* Quick Sign In Info */}
+          <View style={styles.quickSignIn}>
+            <Text style={styles.quickSignInTitle}>Quick Sign In</Text>
+            <Text style={styles.quickSignInText}>
+              Use these credentials for testing:
+            </Text>
+            <View style={styles.testCredentials}>
+              <Text style={styles.credentialText}>Email: john@example.com</Text>
+              <Text style={styles.credentialText}>Password: password123</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -152,6 +177,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -163,25 +191,31 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   title: {
-    ...theme.typography.h2,
+    fontSize: 28,
+    fontWeight: '700' as const,
     color: theme.colors.textPrimary,
     textAlign: 'center',
     marginBottom: theme.spacing.sm,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   form: {
     flex: 1,
   },
-  forgotPasswordButton: {
-    alignSelf: 'flex-end',
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
     marginTop: theme.spacing.sm,
   },
-  buttonContainer: {
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+  },
+  actions: {
     marginTop: theme.spacing.lg,
   },
   signInButton: {
@@ -193,7 +227,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signUpText: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
+  },
+  quickSignIn: {
+    marginTop: theme.spacing.xl,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.mutedBg,
+    borderRadius: theme.borderRadius.lg,
+  },
+  quickSignInTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+  },
+  quickSignInText: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.sm,
+  },
+  testCredentials: {
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+  },
+  credentialText: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
   },
 }); 

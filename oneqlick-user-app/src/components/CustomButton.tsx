@@ -67,31 +67,35 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.shadows.small,
+    flexDirection: 'row',
+    ...theme.shadows.medium,
   },
   primary: {
     backgroundColor: theme.colors.primary,
+    borderWidth: 0,
   },
   secondary: {
     backgroundColor: theme.colors.secondary,
+    borderWidth: 0,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: theme.colors.primary,
+    ...theme.shadows.small,
   },
   small: {
     paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    minHeight: 40,
+    paddingHorizontal: theme.spacing.lg,
+    minHeight: 44,
   },
   medium: {
     paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    minHeight: 48,
+    paddingHorizontal: theme.spacing.xl,
+    minHeight: 52,
   },
   large: {
     paddingVertical: theme.spacing.lg,
@@ -99,10 +103,11 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   disabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   text: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
+    textAlign: 'center',
   },
   primaryText: {
     color: theme.colors.background,
@@ -123,6 +128,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   disabledText: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
 }); 

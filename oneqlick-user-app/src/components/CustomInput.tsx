@@ -8,6 +8,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { Icon, Icons } from './Icon';
 import { theme } from '../theme/theme';
 
 interface CustomInputProps {
@@ -67,15 +68,19 @@ export const CustomInput: React.FC<CustomInputProps> = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholderTextColor={theme.colors.textSecondary}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
         {secureTextEntry && (
           <TouchableOpacity
             style={styles.eyeButton}
             onPress={() => setShowPassword(!showPassword)}
           >
-            <Text style={styles.eyeText}>
-              {showPassword ? '👁️' : '👁️‍🗨️'}
-            </Text>
+            <Icon
+              name={showPassword ? Icons.eye : Icons.eyeOff}
+              size={20}
+              color={theme.colors.textSecondary}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -86,36 +91,40 @@ export const CustomInput: React.FC<CustomInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.sm,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.lg,
     backgroundColor: theme.colors.background,
-    paddingHorizontal: theme.spacing.md,
-    minHeight: 48,
+    paddingHorizontal: theme.spacing.lg,
+    minHeight: 56,
+    ...theme.shadows.small,
   },
   input: {
     flex: 1,
     fontSize: 16,
     color: theme.colors.textPrimary,
     paddingVertical: theme.spacing.md,
+    fontWeight: '400' as const,
   },
   focused: {
     borderColor: theme.colors.primary,
     borderWidth: 2,
+    ...theme.shadows.medium,
   },
   error: {
     borderColor: theme.colors.error,
+    borderWidth: 2,
   },
   disabled: {
     backgroundColor: theme.colors.mutedBg,
@@ -126,13 +135,13 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     padding: theme.spacing.sm,
-  },
-  eyeText: {
-    fontSize: 20,
+    marginLeft: theme.spacing.xs,
   },
   errorText: {
     color: theme.colors.error,
     fontSize: 14,
+    fontWeight: '500' as const,
     marginTop: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
   },
 }); 

@@ -7,6 +7,8 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -108,83 +110,100 @@ export const SignUpScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            Sign up to start ordering your favorite food
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-          <CustomInput
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={formData.name}
-            onChangeText={(text) => setFormData({ ...formData, name: text })}
-            error={errors.name}
-          />
-
-          <CustomInput
-            label="Email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-            keyboardType="email-address"
-            error={errors.email}
-          />
-
-          <CustomInput
-            label="Phone Number"
-            placeholder="Enter your phone number"
-            value={formData.phone}
-            onChangeText={(text) => setFormData({ ...formData, phone: text })}
-            keyboardType="phone-pad"
-            error={errors.phone}
-          />
-
-          <CustomInput
-            label="Password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChangeText={(text) => setFormData({ ...formData, password: text })}
-            secureTextEntry
-            error={errors.password}
-          />
-
-          <CustomInput
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-            secureTextEntry
-            error={errors.confirmPassword}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            title="Create Account"
-            onPress={handleSignUp}
-            loading={isLoading}
-            size="large"
-            style={styles.signUpButton}
-          />
-
-          <View style={styles.signInContainer}>
-            <Text style={styles.signInText}>Already have an account? </Text>
-            <CustomButton
-              title="Sign In"
-              onPress={handleSignIn}
-              variant="outline"
-              size="small"
-            />
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>
+              Join OneQlick and start ordering amazing food
+            </Text>
           </View>
-        </View>
-      </ScrollView>
+
+          {/* Form */}
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.sectionTitle}>Personal Information</Text>
+              
+              <CustomInput
+                label="Full Name"
+                placeholder="Enter your full name"
+                value={formData.name}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
+                error={errors.name}
+              />
+
+              <CustomInput
+                label="Email Address"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                keyboardType="email-address"
+                error={errors.email}
+              />
+
+              <CustomInput
+                label="Phone Number"
+                placeholder="Enter your phone number"
+                value={formData.phone}
+                onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                keyboardType="phone-pad"
+                error={errors.phone}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.sectionTitle}>Security</Text>
+              
+              <CustomInput
+                label="Password"
+                placeholder="Create a strong password"
+                value={formData.password}
+                onChangeText={(text) => setFormData({ ...formData, password: text })}
+                secureTextEntry
+                error={errors.password}
+              />
+
+              <CustomInput
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
+                secureTextEntry
+                error={errors.confirmPassword}
+              />
+            </View>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <CustomButton
+              title="Create Account"
+              onPress={handleSignUp}
+              loading={isLoading}
+              size="large"
+              style={styles.signUpButton}
+            />
+
+            <View style={styles.signInContainer}>
+              <Text style={styles.signInText}>Already have an account? </Text>
+              <CustomButton
+                title="Sign In"
+                onPress={handleSignIn}
+                variant="outline"
+                size="small"
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -193,6 +212,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -204,21 +226,34 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   title: {
-    ...theme.typography.h2,
+    fontSize: 28,
+    fontWeight: '700' as const,
     color: theme.colors.textPrimary,
     textAlign: 'center',
     marginBottom: theme.spacing.sm,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   form: {
     flex: 1,
   },
-  buttonContainer: {
+  inputGroup: {
+    marginBottom: theme.spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.md,
+    paddingLeft: theme.spacing.xs,
+  },
+  actions: {
     marginTop: theme.spacing.lg,
   },
   signUpButton: {
@@ -230,7 +265,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signInText: {
-    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '400' as const,
     color: theme.colors.textSecondary,
   },
 }); 
