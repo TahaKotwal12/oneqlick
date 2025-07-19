@@ -1,0 +1,77 @@
+export const restaurants = [
+  {
+    id: '1',
+    name: 'Village Dhaba',
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
+    cuisine: 'North Indian',
+    rating: 4.5,
+    deliveryTime: '30-40 min',
+  },
+  {
+    id: '2',
+    name: 'Rural Tadka',
+    image: 'https://images.unsplash.com/photo-1523987355523-c7b5b0723c6a',
+    cuisine: 'South Indian',
+    rating: 4.2,
+    deliveryTime: '25-35 min',
+  },
+  {
+    id: '3',
+    name: 'Desi Zaika',
+    image: 'https://images.unsplash.com/photo-1464306076886-debca5e8a6b0',
+    cuisine: 'Punjabi',
+    rating: 4.7,
+    deliveryTime: '20-30 min',
+  },
+];
+
+export const foods = [
+  {
+    id: '101',
+    restaurantId: '1',
+    name: 'Paneer Butter Masala',
+    price: 120,
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
+    description: 'Creamy paneer curry with butter and spices.',
+  },
+  {
+    id: '102',
+    restaurantId: '1',
+    name: 'Dal Tadka',
+    price: 80,
+    image: 'https://images.unsplash.com/photo-1523987355523-c7b5b0723c6a',
+    description: 'Yellow dal cooked with Indian spices.',
+  },
+  {
+    id: '201',
+    restaurantId: '2',
+    name: 'Masala Dosa',
+    price: 60,
+    image: 'https://images.unsplash.com/photo-1464306076886-debca5e8a6b0',
+    description: 'Crispy dosa with spicy potato filling.',
+  },
+  {
+    id: '202',
+    restaurantId: '2',
+    name: 'Idli Sambar',
+    price: 50,
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
+    description: 'Steamed rice cakes served with sambar.',
+  },
+  {
+    id: '301',
+    restaurantId: '3',
+    name: 'Butter Chicken',
+    price: 150,
+    image: 'https://images.unsplash.com/photo-1523987355523-c7b5b0723c6a',
+    description: 'Rich and creamy chicken curry.',
+  },
+  {
+    id: '302',
+    restaurantId: '3',
+    name: 'Chole Bhature',
+    price: 90,
+    image: 'https://images.unsplash.com/photo-1464306076886-debca5e8a6b0',
+    description: 'Spicy chickpeas with fried bread.',
+  },
+]; 

@@ -9,7 +9,7 @@ import { AuthOptionsScreen } from '../features/auth/screens/AuthOptionsScreen';
 import { SignUpScreen } from '../features/auth/screens/SignUpScreen';
 import { SignInScreen } from '../features/auth/screens/SignInScreen';
 import { ForgotPasswordScreen } from '../features/auth/screens/ForgotPasswordScreen';
-import { DashboardScreen } from '../features/auth/screens/DashboardScreen';
+import HomeScreen from '../features/home/screens/HomeScreen';
 
 // Import restaurant screens
 import { RestaurantListScreen } from '../features/restaurant/screens/RestaurantListScreen';
@@ -31,7 +31,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="SignIn" component={SignInScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
         
         {/* Restaurant Feature */}
         <Stack.Screen name="RestaurantList" component={RestaurantListScreen} />
