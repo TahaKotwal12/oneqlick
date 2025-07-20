@@ -4,7 +4,7 @@ export type RootStackParamList = {
   SignUp: undefined;
   SignIn: undefined;
   ForgotPassword: undefined;
-  Dashboard: undefined;
+  Home: undefined;
   // Restaurant Feature
   RestaurantList: undefined;
   RestaurantDetail: { restaurantId: string };
@@ -21,7 +21,7 @@ export type AuthStackParamList = {
 };
 
 export type MainStackParamList = {
-  Dashboard: undefined;
+  Home: undefined;
   RestaurantList: undefined;
   RestaurantDetail: { restaurantId: string };
   Menu: { restaurantId: string };
