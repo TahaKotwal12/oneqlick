@@ -33,8 +33,8 @@ CREATE TYPE notification_type AS ENUM ('order_update', 'promotion', 'system');
 -- ====================================================================
 
 -- Users table (customers, admins, delivery partners, restaurant owners)
-CREATE TABLE core_mstr_oneqlick_users (
-    core_mstr_oneqlick_users_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE core_mstr_one_qlick_users_tbl (
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -50,9 +50,9 @@ CREATE TABLE core_mstr_oneqlick_users (
 );
 
 -- User addresses
-CREATE TABLE core_mstr_oneqlick_addresses (
-    core_mstr_oneqlick_addresses_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id) ON DELETE CASCADE,
+CREATE TABLE core_mstr_one_qlick_addresses_tbl (
+    address_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id) ON DELETE CASCADE,
     title VARCHAR(100) NOT NULL, -- Home, Office, etc.
     address_line1 VARCHAR(255) NOT NULL,
     address_line2 VARCHAR(255),
@@ -66,9 +66,9 @@ CREATE TABLE core_mstr_oneqlick_addresses (
 );
 
 -- Restaurants
-CREATE TABLE core_mstr_oneqlick_restaurants (
-    core_mstr_oneqlick_restaurants_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    owner_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
+CREATE TABLE core_mstr_one_qlick_restaurants_tbl (
+    restaurant_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     phone VARCHAR(20) NOT NULL,
@@ -97,8 +97,8 @@ CREATE TABLE core_mstr_oneqlick_restaurants (
 );
 
 -- Food categories
-CREATE TABLE core_mstr_oneqlick_categories (
-    core_mstr_oneqlick_categories_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE core_mstr_one_qlick_categories_tbl (
+    category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     description TEXT,
     image VARCHAR(500),
@@ -108,10 +108,10 @@ CREATE TABLE core_mstr_oneqlick_categories (
 );
 
 -- Food items
-CREATE TABLE core_mstr_oneqlick_food_items (
-    core_mstr_oneqlick_food_items_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    restaurant_id UUID REFERENCES core_mstr_oneqlick_restaurants(core_mstr_oneqlick_restaurants_id) ON DELETE CASCADE,
-    category_id UUID REFERENCES core_mstr_oneqlick_categories(core_mstr_oneqlick_categories_id),
+CREATE TABLE core_mstr_one_qlick_food_items_tbl (
+    food_item_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    restaurant_id UUID REFERENCES core_mstr_one_qlick_restaurants_tbl(restaurant_id) ON DELETE CASCADE,
+    category_id UUID REFERENCES core_mstr_one_qlick_categories_tbl(category_id),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
@@ -131,9 +131,9 @@ CREATE TABLE core_mstr_oneqlick_food_items (
 );
 
 -- Food item variants (size, extras, etc.)
-CREATE TABLE core_mstr_oneqlick_food_variants (
-    core_mstr_oneqlick_food_variants_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    food_item_id UUID REFERENCES core_mstr_oneqlick_food_items(core_mstr_oneqlick_food_items_id) ON DELETE CASCADE,
+CREATE TABLE core_mstr_one_qlick_food_variants_tbl (
+    food_variant_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    food_item_id UUID REFERENCES core_mstr_one_qlick_food_items_tbl(food_item_id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL, -- Small, Medium, Large
     price_adjustment DECIMAL(10, 2) DEFAULT 0,
     is_default BOOLEAN DEFAULT FALSE,
@@ -141,12 +141,12 @@ CREATE TABLE core_mstr_oneqlick_food_variants (
 );
 
 -- Orders
-CREATE TABLE core_mstr_oneqlick_orders (
-    core_mstr_oneqlick_orders_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    customer_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
-    restaurant_id UUID REFERENCES core_mstr_oneqlick_restaurants(core_mstr_oneqlick_restaurants_id),
-    delivery_partner_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
-    delivery_address_id UUID REFERENCES core_mstr_oneqlick_addresses(core_mstr_oneqlick_addresses_id),
+CREATE TABLE core_mstr_one_qlick_orders_tbl (
+    order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
+    restaurant_id UUID REFERENCES core_mstr_one_qlick_restaurants_tbl(restaurant_id),
+    delivery_partner_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
+    delivery_address_id UUID REFERENCES core_mstr_one_qlick_addresses_tbl(address_id),
     order_number VARCHAR(50) UNIQUE NOT NULL,
     subtotal DECIMAL(10, 2) NOT NULL,
     tax_amount DECIMAL(10, 2) DEFAULT 0,
@@ -168,11 +168,11 @@ CREATE TABLE core_mstr_oneqlick_orders (
 );
 
 -- Order items
-CREATE TABLE core_mstr_oneqlick_order_items (
-    core_mstr_oneqlick_order_items_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID REFERENCES core_mstr_oneqlick_orders(core_mstr_oneqlick_orders_id) ON DELETE CASCADE,
-    food_item_id UUID REFERENCES core_mstr_oneqlick_food_items(core_mstr_oneqlick_food_items_id),
-    variant_id UUID REFERENCES core_mstr_oneqlick_food_variants(core_mstr_oneqlick_food_variants_id),
+CREATE TABLE core_mstr_one_qlick_order_items_tbl (
+    order_item_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES core_mstr_one_qlick_orders_tbl(order_id) ON DELETE CASCADE,
+    food_item_id UUID REFERENCES core_mstr_one_qlick_food_items_tbl(food_item_id),
+    variant_id UUID REFERENCES core_mstr_one_qlick_food_variants_tbl(food_variant_id),
     quantity INTEGER NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
@@ -181,9 +181,9 @@ CREATE TABLE core_mstr_oneqlick_order_items (
 );
 
 -- Delivery partner details
-CREATE TABLE core_mstr_oneqlick_delivery_partners (
-    core_mstr_oneqlick_delivery_partners_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id) ON DELETE CASCADE,
+CREATE TABLE core_mstr_one_qlick_delivery_partners_tbl (
+    delivery_partner_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id) ON DELETE CASCADE,
     vehicle_type vehicle_type NOT NULL,
     vehicle_number VARCHAR(50) NOT NULL,
     license_number VARCHAR(50) NOT NULL,
@@ -200,9 +200,9 @@ CREATE TABLE core_mstr_oneqlick_delivery_partners (
 );
 
 -- Order tracking
-CREATE TABLE core_mstr_oneqlick_order_tracking (
-    core_mstr_oneqlick_order_tracking_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID REFERENCES core_mstr_oneqlick_orders(core_mstr_oneqlick_orders_id) ON DELETE CASCADE,
+CREATE TABLE core_mstr_one_qlick_order_tracking_tbl (
+    order_tracking_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES core_mstr_one_qlick_orders_tbl(order_id) ON DELETE CASCADE,
     status order_status NOT NULL,
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
@@ -211,8 +211,8 @@ CREATE TABLE core_mstr_oneqlick_order_tracking (
 );
 
 -- Coupons and discounts
-CREATE TABLE core_mstr_oneqlick_coupons (
-    core_mstr_oneqlick_coupons_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE core_mstr_one_qlick_coupons_tbl (
+    coupon_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(50) UNIQUE NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -229,22 +229,22 @@ CREATE TABLE core_mstr_oneqlick_coupons (
 );
 
 -- User coupon usage tracking
-CREATE TABLE core_mstr_oneqlick_user_coupon_usage (
-    core_mstr_oneqlick_user_coupon_usage_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
-    coupon_id UUID REFERENCES core_mstr_oneqlick_coupons(core_mstr_oneqlick_coupons_id),
-    order_id UUID REFERENCES core_mstr_oneqlick_orders(core_mstr_oneqlick_orders_id),
+CREATE TABLE core_mstr_one_qlick_user_coupon_usage_tbl (
+    user_coupon_usage_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
+    coupon_id UUID REFERENCES core_mstr_one_qlick_coupons_tbl(coupon_id),
+    order_id UUID REFERENCES core_mstr_one_qlick_orders_tbl(order_id),
     used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, coupon_id, order_id)
 );
 
 -- Reviews and ratings
-CREATE TABLE core_mstr_oneqlick_reviews (
-    core_mstr_oneqlick_reviews_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID REFERENCES core_mstr_oneqlick_orders(core_mstr_oneqlick_orders_id),
-    customer_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
-    restaurant_id UUID REFERENCES core_mstr_oneqlick_restaurants(core_mstr_oneqlick_restaurants_id),
-    delivery_partner_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
+CREATE TABLE core_mstr_one_qlick_reviews_tbl (
+    review_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES core_mstr_one_qlick_orders_tbl(order_id),
+    customer_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
+    restaurant_id UUID REFERENCES core_mstr_one_qlick_restaurants_tbl(restaurant_id),
+    delivery_partner_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     review_text TEXT,
     review_type VARCHAR(20) NOT NULL, -- 'restaurant', 'delivery'
@@ -252,9 +252,9 @@ CREATE TABLE core_mstr_oneqlick_reviews (
 );
 
 -- Notifications
-CREATE TABLE core_mstr_oneqlick_notifications (
-    core_mstr_oneqlick_notifications_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES core_mstr_oneqlick_users(core_mstr_oneqlick_users_id),
+CREATE TABLE core_mstr_one_qlick_notifications_tbl (
+    notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES core_mstr_one_qlick_users_tbl(user_id),
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     notification_type notification_type DEFAULT 'system',
@@ -268,67 +268,67 @@ CREATE TABLE core_mstr_oneqlick_notifications (
 -- ====================================================================
 
 -- User table indexes
-CREATE INDEX idx_core_mstr_oneqlick_users_email ON core_mstr_oneqlick_users(email);
-CREATE INDEX idx_core_mstr_oneqlick_users_phone ON core_mstr_oneqlick_users(phone);
-CREATE INDEX idx_core_mstr_oneqlick_users_role ON core_mstr_oneqlick_users(role);
-CREATE INDEX idx_core_mstr_oneqlick_users_status ON core_mstr_oneqlick_users(status);
+CREATE INDEX idx_one_qlick_users_email ON core_mstr_one_qlick_users_tbl(email);
+CREATE INDEX idx_one_qlick_users_phone ON core_mstr_one_qlick_users_tbl(phone);
+CREATE INDEX idx_one_qlick_users_role ON core_mstr_one_qlick_users_tbl(role);
+CREATE INDEX idx_one_qlick_users_status ON core_mstr_one_qlick_users_tbl(status);
 
 -- Address table indexes
-CREATE INDEX idx_core_mstr_oneqlick_addresses_user_id ON core_mstr_oneqlick_addresses(user_id);
-CREATE INDEX idx_core_mstr_oneqlick_addresses_location ON core_mstr_oneqlick_addresses(latitude, longitude);
+CREATE INDEX idx_one_qlick_addresses_user_id ON core_mstr_one_qlick_addresses_tbl(user_id);
+CREATE INDEX idx_one_qlick_addresses_location ON core_mstr_one_qlick_addresses_tbl(latitude, longitude);
 
 -- Restaurant table indexes
-CREATE INDEX idx_core_mstr_oneqlick_restaurants_owner_id ON core_mstr_oneqlick_restaurants(owner_id);
-CREATE INDEX idx_core_mstr_oneqlick_restaurants_location ON core_mstr_oneqlick_restaurants(latitude, longitude);
-CREATE INDEX idx_core_mstr_oneqlick_restaurants_status ON core_mstr_oneqlick_restaurants(status);
-CREATE INDEX idx_core_mstr_oneqlick_restaurants_cuisine ON core_mstr_oneqlick_restaurants(cuisine_type);
+CREATE INDEX idx_one_qlick_restaurants_owner_id ON core_mstr_one_qlick_restaurants_tbl(owner_id);
+CREATE INDEX idx_one_qlick_restaurants_location ON core_mstr_one_qlick_restaurants_tbl(latitude, longitude);
+CREATE INDEX idx_one_qlick_restaurants_status ON core_mstr_one_qlick_restaurants_tbl(status);
+CREATE INDEX idx_one_qlick_restaurants_cuisine ON core_mstr_one_qlick_restaurants_tbl(cuisine_type);
 
 -- Food items table indexes
-CREATE INDEX idx_core_mstr_oneqlick_food_items_restaurant ON core_mstr_oneqlick_food_items(restaurant_id);
-CREATE INDEX idx_core_mstr_oneqlick_food_items_category ON core_mstr_oneqlick_food_items(category_id);
-CREATE INDEX idx_core_mstr_oneqlick_food_items_status ON core_mstr_oneqlick_food_items(status);
+CREATE INDEX idx_one_qlick_food_items_restaurant ON core_mstr_one_qlick_food_items_tbl(restaurant_id);
+CREATE INDEX idx_one_qlick_food_items_category ON core_mstr_one_qlick_food_items_tbl(category_id);
+CREATE INDEX idx_one_qlick_food_items_status ON core_mstr_one_qlick_food_items_tbl(status);
 
 -- Order table indexes
-CREATE INDEX idx_core_mstr_oneqlick_orders_customer ON core_mstr_oneqlick_orders(customer_id);
-CREATE INDEX idx_core_mstr_oneqlick_orders_restaurant ON core_mstr_oneqlick_orders(restaurant_id);
-CREATE INDEX idx_core_mstr_oneqlick_orders_delivery_partner ON core_mstr_oneqlick_orders(delivery_partner_id);
-CREATE INDEX idx_core_mstr_oneqlick_orders_status ON core_mstr_oneqlick_orders(order_status);
-CREATE INDEX idx_core_mstr_oneqlick_orders_payment_status ON core_mstr_oneqlick_orders(payment_status);
-CREATE INDEX idx_core_mstr_oneqlick_orders_created_at ON core_mstr_oneqlick_orders(created_at);
-CREATE INDEX idx_core_mstr_oneqlick_orders_order_number ON core_mstr_oneqlick_orders(order_number);
+CREATE INDEX idx_one_qlick_orders_customer ON core_mstr_one_qlick_orders_tbl(customer_id);
+CREATE INDEX idx_one_qlick_orders_restaurant ON core_mstr_one_qlick_orders_tbl(restaurant_id);
+CREATE INDEX idx_one_qlick_orders_delivery_partner ON core_mstr_one_qlick_orders_tbl(delivery_partner_id);
+CREATE INDEX idx_one_qlick_orders_status ON core_mstr_one_qlick_orders_tbl(order_status);
+CREATE INDEX idx_one_qlick_orders_payment_status ON core_mstr_one_qlick_orders_tbl(payment_status);
+CREATE INDEX idx_one_qlick_orders_created_at ON core_mstr_one_qlick_orders_tbl(created_at);
+CREATE INDEX idx_one_qlick_orders_order_number ON core_mstr_one_qlick_orders_tbl(order_number);
 
 -- Order items table indexes
-CREATE INDEX idx_core_mstr_oneqlick_order_items_order_id ON core_mstr_oneqlick_order_items(order_id);
-CREATE INDEX idx_core_mstr_oneqlick_order_items_food_item_id ON core_mstr_oneqlick_order_items(food_item_id);
+CREATE INDEX idx_one_qlick_order_items_order_id ON core_mstr_one_qlick_order_items_tbl(order_id);
+CREATE INDEX idx_one_qlick_order_items_food_item_id ON core_mstr_one_qlick_order_items_tbl(food_item_id);
 
 -- Delivery partners table indexes
-CREATE INDEX idx_core_mstr_oneqlick_delivery_partners_user_id ON core_mstr_oneqlick_delivery_partners(user_id);
-CREATE INDEX idx_core_mstr_oneqlick_delivery_partners_availability ON core_mstr_oneqlick_delivery_partners(availability_status);
-CREATE INDEX idx_core_mstr_oneqlick_delivery_partners_location ON core_mstr_oneqlick_delivery_partners(current_latitude, current_longitude);
+CREATE INDEX idx_one_qlick_delivery_partners_user_id ON core_mstr_one_qlick_delivery_partners_tbl(user_id);
+CREATE INDEX idx_one_qlick_delivery_partners_availability ON core_mstr_one_qlick_delivery_partners_tbl(availability_status);
+CREATE INDEX idx_one_qlick_delivery_partners_location ON core_mstr_one_qlick_delivery_partners_tbl(current_latitude, current_longitude);
 
 -- Order tracking table indexes
-CREATE INDEX idx_core_mstr_oneqlick_order_tracking_order ON core_mstr_oneqlick_order_tracking(order_id);
-CREATE INDEX idx_core_mstr_oneqlick_order_tracking_status ON core_mstr_oneqlick_order_tracking(status);
+CREATE INDEX idx_one_qlick_order_tracking_order ON core_mstr_one_qlick_order_tracking_tbl(order_id);
+CREATE INDEX idx_one_qlick_order_tracking_status ON core_mstr_one_qlick_order_tracking_tbl(status);
 
 -- Coupon table indexes
-CREATE INDEX idx_core_mstr_oneqlick_coupons_code ON core_mstr_oneqlick_coupons(code);
-CREATE INDEX idx_core_mstr_oneqlick_coupons_active ON core_mstr_oneqlick_coupons(is_active);
-CREATE INDEX idx_core_mstr_oneqlick_coupons_validity ON core_mstr_oneqlick_coupons(valid_from, valid_until);
+CREATE INDEX idx_one_qlick_coupons_code ON core_mstr_one_qlick_coupons_tbl(code);
+CREATE INDEX idx_one_qlick_coupons_active ON core_mstr_one_qlick_coupons_tbl(is_active);
+CREATE INDEX idx_one_qlick_coupons_validity ON core_mstr_one_qlick_coupons_tbl(valid_from, valid_until);
 
 -- User coupon usage table indexes
-CREATE INDEX idx_core_mstr_oneqlick_user_coupon_usage_user_id ON core_mstr_oneqlick_user_coupon_usage(user_id);
-CREATE INDEX idx_core_mstr_oneqlick_user_coupon_usage_coupon_id ON core_mstr_oneqlick_user_coupon_usage(coupon_id);
+CREATE INDEX idx_one_qlick_user_coupon_usage_user_id ON core_mstr_one_qlick_user_coupon_usage_tbl(user_id);
+CREATE INDEX idx_one_qlick_user_coupon_usage_coupon_id ON core_mstr_one_qlick_user_coupon_usage_tbl(coupon_id);
 
 -- Reviews table indexes
-CREATE INDEX idx_core_mstr_oneqlick_reviews_order_id ON core_mstr_oneqlick_reviews(order_id);
-CREATE INDEX idx_core_mstr_oneqlick_reviews_customer_id ON core_mstr_oneqlick_reviews(customer_id);
-CREATE INDEX idx_core_mstr_oneqlick_reviews_restaurant_id ON core_mstr_oneqlick_reviews(restaurant_id);
-CREATE INDEX idx_core_mstr_oneqlick_reviews_delivery_partner_id ON core_mstr_oneqlick_reviews(delivery_partner_id);
+CREATE INDEX idx_one_qlick_reviews_order_id ON core_mstr_one_qlick_reviews_tbl(order_id);
+CREATE INDEX idx_one_qlick_reviews_customer_id ON core_mstr_one_qlick_reviews_tbl(customer_id);
+CREATE INDEX idx_one_qlick_reviews_restaurant_id ON core_mstr_one_qlick_reviews_tbl(restaurant_id);
+CREATE INDEX idx_one_qlick_reviews_delivery_partner_id ON core_mstr_one_qlick_reviews_tbl(delivery_partner_id);
 
 -- Notifications table indexes
-CREATE INDEX idx_core_mstr_oneqlick_notifications_user_id ON core_mstr_oneqlick_notifications(user_id);
-CREATE INDEX idx_core_mstr_oneqlick_notifications_read_status ON core_mstr_oneqlick_notifications(is_read);
-CREATE INDEX idx_core_mstr_oneqlick_notifications_type ON core_mstr_oneqlick_notifications(notification_type);
+CREATE INDEX idx_one_qlick_notifications_user_id ON core_mstr_one_qlick_notifications_tbl(user_id);
+CREATE INDEX idx_one_qlick_notifications_read_status ON core_mstr_one_qlick_notifications_tbl(is_read);
+CREATE INDEX idx_one_qlick_notifications_type ON core_mstr_one_qlick_notifications_tbl(notification_type);
 
 -- ====================================================================
 -- TRIGGERS FOR UPDATED_AT TIMESTAMPS
@@ -344,24 +344,24 @@ END;
 $$ language 'plpgsql';
 
 -- Apply the trigger to tables with updated_at column
-CREATE TRIGGER update_core_mstr_oneqlick_users_updated_at
-    BEFORE UPDATE ON core_mstr_oneqlick_users
+CREATE TRIGGER update_one_qlick_users_updated_at
+    BEFORE UPDATE ON core_mstr_one_qlick_users_tbl
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_core_mstr_oneqlick_restaurants_updated_at
-    BEFORE UPDATE ON core_mstr_oneqlick_restaurants
+CREATE TRIGGER update_one_qlick_restaurants_updated_at
+    BEFORE UPDATE ON core_mstr_one_qlick_restaurants_tbl
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_core_mstr_oneqlick_food_items_updated_at
-    BEFORE UPDATE ON core_mstr_oneqlick_food_items
+CREATE TRIGGER update_one_qlick_food_items_updated_at
+    BEFORE UPDATE ON core_mstr_one_qlick_food_items_tbl
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_core_mstr_oneqlick_orders_updated_at
-    BEFORE UPDATE ON core_mstr_oneqlick_orders
+CREATE TRIGGER update_one_qlick_orders_updated_at
+    BEFORE UPDATE ON core_mstr_one_qlick_orders_tbl
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_core_mstr_oneqlick_delivery_partners_updated_at
-    BEFORE UPDATE ON core_mstr_oneqlick_delivery_partners
+CREATE TRIGGER update_one_qlick_delivery_partners_updated_at
+    BEFORE UPDATE ON core_mstr_one_qlick_delivery_partners_tbl
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ====================================================================
@@ -369,7 +369,7 @@ CREATE TRIGGER update_core_mstr_oneqlick_delivery_partners_updated_at
 -- ====================================================================
 
 -- Insert sample categories
-INSERT INTO core_mstr_oneqlick_categories (name, description, is_active, sort_order) VALUES
+INSERT INTO core_mstr_one_qlick_categories_tbl (name, description, is_active, sort_order) VALUES
 ('Appetizers', 'Starters and appetizers', TRUE, 1),
 ('Main Course', 'Main dishes and entrees', TRUE, 2),
 ('Desserts', 'Sweet treats and desserts', TRUE, 3),
