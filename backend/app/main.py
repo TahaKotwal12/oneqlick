@@ -1,28 +1,31 @@
 # main.py
 
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.infra.postgres.base import SessionLocal
-from app.infra.postgres.models.user import User
-from app.api.schemas.user_schema import UserResponse
-from uuid import UUID
+from fastapi import FastAPI
+from app.api.routes.user_routes import router as user_router
 
 
-app = FastAPI(title="OneQlick API")
+app = FastAPI(
+    title="OneQlick API",
+    description="Food delivery application for rural areas of India",
+    version="1.0.0"
+)
 
-# Add your endpoints here
+
+# Include routers
+app.include_router(user_router)
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Welcome to OneQlick API",
+        "version": "1.0.0",
+        "docs": "/docs"
+    }
 
-@app.get("/users/{user_id}", response_model=UserResponse)
-def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy"}

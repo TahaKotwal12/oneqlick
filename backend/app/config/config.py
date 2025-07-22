@@ -3,7 +3,7 @@ import os
 
 load_dotenv()  # Load .env file
 
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql+psycopg://postgres:postgres@localhost:5432/core_db')
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql+psycopg2://postgres:Taubas%40123@db.dlgqoqptdhljptpqdoxi.supabase.co:5432/postgres')
 
 CLICKHOUSE_CONFIG = {
     "host": os.getenv("CLICKHOUSE_HOST", "localhost"),
