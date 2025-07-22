@@ -1,9 +1,7 @@
-import os
 from dotenv import load_dotenv
+import os
 
-load_dotenv()
+load_dotenv()  # Load .env file
 
-class Settings:
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
-
-settings = Settings() 
+DATABASE_URL = os.getenv('DATABASE_URL')
+APP_ENV = os.getenv("APP_ENV", "development")

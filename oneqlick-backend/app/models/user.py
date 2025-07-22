@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Enum, TIMESTAMP
+from sqlalchemy import Column, String, Boolean, Enum, TIMESTAMP, func
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from ..db import Base
@@ -29,5 +29,5 @@ class User(Base):
     profile_image = Column(String(500))
     email_verified = Column(Boolean, default=False)
     phone_verified = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP, nullable=False)
-    updated_at = Column(TIMESTAMP, nullable=False) 
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False) 

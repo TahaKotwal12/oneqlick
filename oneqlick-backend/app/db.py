@@ -1,9 +1,20 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
-from .config import settings
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session
+from app.config import DATABASE_URL  # Import from your config module
 
-DATABASE_URL = settings.DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://')
+# Create the SQLAlchemy engine using the database URL from the config
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
-engine = create_async_engine(DATABASE_URL, echo=True, future=True)
-SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-Base = declarative_base() 
+# Create a scoped session for thread-safety
+SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+
+# Create a base class for your ORM models
+Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close() 

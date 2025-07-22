@@ -1,2 +1,10 @@
-# This file will be simplified to just import the app from __init__.py
-from . import app
+from fastapi import FastAPI
+from .routers import user
+
+app = FastAPI(title="OneQlick Food SaaS API")
+
+app.include_router(user.router)
+
+@app.get("/hello")
+def hello():
+    return {"message": "Hello, OneQlick!"}
