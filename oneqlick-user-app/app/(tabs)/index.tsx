@@ -1,75 +1,115 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { useState } from 'react';
+import { , Button, Card, H1, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 export default function HomeScreen() {
+  const [count, setCount] = useState(0);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <YStack flex={1} space="$4" padding="$4">
+      {/* Header Section */}
+      <YStack space="$2" alignItems="center" paddingTop="$4">
+        <H1>Welcome to OneQlick! 🚀</H1>
+        <Paragraph size="$4">
+          Your React Native app with Tamagui is ready to go!
+        </Paragraph>
+      </YStack>
+
+      {/* Main Content Card */}
+      <Card elevate size="$4" padding="$4" space="$4">
+        <YStack space="$3">
+          <H2>Hello World! 👋</H2>
+          <Paragraph size="$3">
+            This is a beautiful Tamagui-powered React Native app. 
+            You can start building amazing user interfaces with these modern components.
+          </Paragraph>
+          
+          {/* Interactive Counter */}
+          <YStack space="$2" alignItems="center">
+            <Text fontSize="$6" fontWeight="bold">
+              Counter: {count}
+            </Text>
+            <XStack space="$2">
+              <Button
+                size="$3"
+                onPress={() => setCount(count - 1)}
+              >
+                Decrease
+              </Button>
+              <Button
+                size="$3"
+                onPress={() => setCount(count + 1)}
+              >
+                Increase
+              </Button>
+            </XStack>
+          </YStack>
+        </YStack>
+      </Card>
+
+      {/* Feature Cards */}
+      <YStack space="$3">
+        <H2 marginBottom="$2">
+          What&apos;s Included
+        </H2>
+        
+        <XStack space="$3" flexWrap="wrap">
+          <Card flex={1} elevate size="$2" padding="$3" minWidth={150}>
+            <YStack space="$2">
+              <Text fontWeight="bold" fontSize="$3">
+                🎨 Tamagui UI
+              </Text>
+              <Text fontSize="$2">
+                Modern, accessible components
+              </Text>
+            </YStack>
+          </Card>
+          
+          <Card flex={1} elevate size="$2" padding="$3" minWidth={150}>
+            <YStack space="$2">
+              <Text fontWeight="bold" fontSize="$3">
+                🌙 Dark Mode
+              </Text>
+              <Text fontSize="$2">
+                Automatic theme switching
+              </Text>
+            </YStack>
+          </Card>
+        </XStack>
+        
+        <XStack space="$3" flexWrap="wrap">
+          <Card flex={1} elevate size="$2" padding="$3" minWidth={150}>
+            <YStack space="$2">
+              <Text fontWeight="bold" fontSize="$3">
+                📱 Expo Router
+              </Text>
+              <Text fontSize="$2">
+                File-based navigation
+              </Text>
+            </YStack>
+          </Card>
+          
+          <Card flex={1} elevate size="$2" padding="$3" minWidth={150}>
+            <YStack space="$2">
+              <Text fontWeight="bold" fontSize="$3">
+                ⚡ Performance
+              </Text>
+              <Text fontSize="$2">
+                Optimized for speed
+              </Text>
+            </YStack>
+          </Card>
+        </XStack>
+      </YStack>
+
+      {/* Action Button */}
+      <YStack alignItems="center" paddingBottom="$4">
+        <Button
+          size="$4"
+          onPress={() => alert('Hello from Tamagui! 🎉')}
+        >
+          Get Started
+        </Button>
+      </YStack>
+    </YStack>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
