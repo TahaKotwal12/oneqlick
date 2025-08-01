@@ -623,6 +623,18 @@ export default function HomeScreen() {
           ))}
         </View>
 
+        {/* Demo Food Detail Button */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Try Food Detail Screen</Text>
+          <TouchableOpacity 
+            style={styles.demoButton}
+            onPress={() => router.push('/food/1' as any)}
+          >
+            <Text style={styles.demoButtonText}>View Margherita Pizza Details</Text>
+            <Ionicons name="arrow-forward" size={20} color={COLORS.text.white} />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.bottomSpacing} />
       </Animated.ScrollView>
     </SafeAreaView>
@@ -1023,5 +1035,25 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 40,
+  },
+  demoButton: {
+    backgroundColor: COLORS.primary,
+    marginHorizontal: SPACING.lg,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  demoButtonText: {
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
   },
 });
