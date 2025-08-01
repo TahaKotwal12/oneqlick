@@ -171,6 +171,8 @@ export default function HomeScreen() {
   const handleQuickActionPress = (action: any) => {
     if (action.title === 'Search') {
       router.push('/(tabs)/search' as any);
+    } else if (action.title === 'Restaurants') {
+      router.push('/restaurants/' as any);
     } else {
       console.log('Quick action pressed:', action.title);
     }

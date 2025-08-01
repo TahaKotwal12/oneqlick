@@ -1,3 +1,5 @@
+import { useCreateUser } from '@/src/hooks/useUser';
+import { CreateUserRequest } from '@/src/types/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -5,22 +7,25 @@ import React, { useRef, useState } from 'react';
 import { Alert, Animated, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegisterScreen() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+  const [formData, setFormData] = useState<CreateUserRequest>({
+    first_name: '',
+    last_name: '',
     email: '',
+    phone: '+91',
     password: '',
-    confirmPassword: '',
-    gender: '',
-    dateOfBirth: '',
+    role: 'customer',
+    profile_image: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [gender, setGender] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
+  const createUserMutation = useCreateUser();
 
   React.useEffect(() => {
     Animated.parallel([
@@ -42,41 +47,64 @@ export default function RegisterScreen() {
     return emailRegex.test(email);
   };
 
+  const validatePhone = (phone: string) => {
+    const phoneRegex = /^\+91[6-9]\d{9}$/;
+    return phoneRegex.test(phone);
+  };
+
   const validatePassword = (password: string) => {
     return password.length >= 8;
   };
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return { strength: 'none', color: '#ccc' };
-    if (password.length < 6) return { strength: 'weak', color: '#ff6b6b' };
-    if (password.length < 8) return { strength: 'medium', color: '#ffa726' };
-    return { strength: 'strong', color: '#4caf50' };
+    if (password.length < 6) return { strength: 'weak', color: '#ff4757' };
+    if (password.length < 8) return { strength: 'fair', color: '#ffa502' };
+    
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    const score = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+    
+    if (score >= 3 && password.length >= 12) return { strength: 'strong', color: '#2ed573' };
+    if (score >= 2 && password.length >= 10) return { strength: 'good', color: '#1e90ff' };
+    return { strength: 'fair', color: '#ffa502' };
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
+    if (!formData.first_name.trim()) {
       newErrors.firstName = 'First name is required';
     }
 
-    if (!formData.lastName.trim()) {
+    if (!formData.last_name.trim()) {
       newErrors.lastName = 'Last name is required';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.phone || formData.phone === '+91') {
+      newErrors.phone = 'Phone number is required';
+    } else if (!validatePhone(formData.phone)) {
+      newErrors.phone = 'Please enter a valid Indian phone number';
     }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = 'Password must be at least 8 characters long';
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
@@ -84,9 +112,18 @@ export default function RegisterScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
+  const handleInputChange = (field: keyof CreateUserRequest | 'confirmPassword' | 'gender' | 'dateOfBirth', value: string) => {
+    if (field === 'confirmPassword') {
+      setConfirmPassword(value);
+    } else if (field === 'gender') {
+      setGender(value);
+    } else if (field === 'dateOfBirth') {
+      setDateOfBirth(value);
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+    
+    // Clear error for this field
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -97,35 +134,39 @@ export default function RegisterScreen() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // Simulate registration API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await createUserMutation.mutateAsync(formData);
       
       Alert.alert(
-        'Success', 
-        'Registration successful! Welcome to OneQlick.',
+        'Registration Successful!',
+        `Welcome ${result.data.first_name}! Your account has been created successfully.`,
         [
           {
-            text: 'OK',
-            onPress: () => router.replace('/(tabs)' as any)
-          }
+            text: 'Continue',
+            onPress: () => {
+              // Navigate to login or home screen
+              router.replace('/(auth)/signin');
+            },
+          },
         ]
       );
-    } catch (error) {
-      Alert.alert('Error', 'Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Handle specific API errors
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data.errors;
+        const newErrors: Record<string, string> = {};
+        
+        Object.keys(apiErrors).forEach(key => {
+          if (apiErrors[key] && apiErrors[key].length > 0) {
+            newErrors[key] = apiErrors[key][0];
+          }
+        });
+        
+        setErrors(newErrors);
+      }
     }
-  };
-
-  const handleSignIn = () => {
-    router.push('/(auth)/signin' as any);
-  };
-
-  const handleBack = () => {
-    router.back();
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
@@ -139,7 +180,7 @@ export default function RegisterScreen() {
     >
       <StatusBar style="light" />
       
-      <Animated.View 
+      <Animated.View
         style={[
           styles.content,
           {
@@ -148,141 +189,164 @@ export default function RegisterScreen() {
           },
         ]}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Main Content */}
-          <View style={styles.mainContent}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
             <Text style={styles.title}>Complete your profile</Text>
+            <Text style={styles.subtitle}>Create your OneQlick account</Text>
+          </View>
 
-            {/* Profile Picture */}
-            <View style={styles.profilePictureContainer}>
-              <TouchableOpacity style={styles.profilePictureButton}>
-                <View style={styles.profilePicture}>
-                  <Text style={styles.profilePictureText}>📷</Text>
-                </View>
-                <Text style={styles.profilePictureLabel}>Add Photo</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Form Fields */}
-            <View style={styles.formContainer}>
-              {/* First Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>First Name *</Text>
+          {/* Form */}
+          <View style={styles.form}>
+            {/* Name Fields */}
+            <View style={styles.nameRow}>
+              <View style={[styles.inputContainer, styles.halfWidth]}>
+                <Text style={styles.label}>First Name</Text>
                 <TextInput
                   style={[styles.input, errors.firstName && styles.inputError]}
+                  value={formData.first_name}
+                  onChangeText={(value) => handleInputChange('first_name', value)}
                   placeholder="Enter first name"
-                  placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                  value={formData.firstName}
-                  onChangeText={(value) => handleInputChange('firstName', value)}
+                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                  editable={!createUserMutation.isPending}
                 />
                 {errors.firstName && <Text style={styles.errorText}>{errors.firstName}</Text>}
               </View>
 
-              {/* Last Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Last Name *</Text>
+              <View style={[styles.inputContainer, styles.halfWidth]}>
+                <Text style={styles.label}>Last Name</Text>
                 <TextInput
                   style={[styles.input, errors.lastName && styles.inputError]}
+                  value={formData.last_name}
+                  onChangeText={(value) => handleInputChange('last_name', value)}
                   placeholder="Enter last name"
-                  placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                  value={formData.lastName}
-                  onChangeText={(value) => handleInputChange('lastName', value)}
+                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                  editable={!createUserMutation.isPending}
                 />
                 {errors.lastName && <Text style={styles.errorText}>{errors.lastName}</Text>}
               </View>
+            </View>
 
-              {/* Email */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email *</Text>
+            {/* Email */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={[styles.input, errors.email && styles.inputError]}
+                value={formData.email}
+                onChangeText={(value) => handleInputChange('email', value)}
+                placeholder="Enter your email"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!createUserMutation.isPending}
+              />
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            </View>
+
+            {/* Phone */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Phone Number</Text>
+              <TextInput
+                style={[styles.input, errors.phone && styles.inputError]}
+                value={formData.phone}
+                onChangeText={(value) => handleInputChange('phone', value)}
+                placeholder="+919876543210"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                keyboardType="phone-pad"
+                editable={!createUserMutation.isPending}
+              />
+              {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+            </View>
+
+            {/* Password */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordContainer}>
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  placeholder="Enter email address"
-                  placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                  value={formData.email}
-                  onChangeText={(value) => handleInputChange('email', value)}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
+                  style={[styles.passwordInput, errors.password && styles.inputError]}
+                  value={formData.password}
+                  onChangeText={(value) => handleInputChange('password', value)}
+                  placeholder="Create password"
+                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                  secureTextEntry={!showPassword}
+                  editable={!createUserMutation.isPending}
                 />
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                </TouchableOpacity>
               </View>
-
-              {/* Password */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Password *</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[styles.input, styles.passwordInput, errors.password && styles.inputError]}
-                    placeholder="Enter password"
-                    placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                    value={formData.password}
-                    onChangeText={(value) => handleInputChange('password', value)}
-                    secureTextEntry={!showPassword}
-                  />
-                  <TouchableOpacity 
-                    style={styles.eyeButton}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Text style={styles.eyeButtonText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                  </TouchableOpacity>
+              {formData.password.length > 0 && (
+                <View style={styles.passwordStrength}>
+                  <View style={[styles.strengthBar, { backgroundColor: passwordStrength.color }]} />
+                  <Text style={[styles.strengthText, { color: passwordStrength.color }]}>
+                    {passwordStrength.strength.charAt(0).toUpperCase() + passwordStrength.strength.slice(1)}
+                  </Text>
                 </View>
-                {formData.password.length > 0 && (
-                  <View style={styles.passwordStrengthContainer}>
-                    <View style={[styles.passwordStrengthBar, { backgroundColor: passwordStrength.color }]} />
-                    <Text style={[styles.passwordStrengthText, { color: passwordStrength.color }]}>
-                      {passwordStrength.strength.charAt(0).toUpperCase() + passwordStrength.strength.slice(1)}
-                    </Text>
-                  </View>
-                )}
-                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-              </View>
+              )}
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            </View>
 
-              {/* Confirm Password */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Confirm Password *</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[styles.input, styles.passwordInput, errors.confirmPassword && styles.inputError]}
-                    placeholder="Confirm password"
-                    placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                    value={formData.confirmPassword}
-                    onChangeText={(value) => handleInputChange('confirmPassword', value)}
-                    secureTextEntry={!showConfirmPassword}
-                  />
-                  <TouchableOpacity 
-                    style={styles.eyeButton}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    <Text style={styles.eyeButtonText}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                  </TouchableOpacity>
-                </View>
-                {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+            {/* Confirm Password */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Confirm Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.passwordInput, errors.confirmPassword && styles.inputError]}
+                  value={confirmPassword}
+                  onChangeText={(value) => handleInputChange('confirmPassword', value)}
+                  placeholder="Confirm password"
+                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                  secureTextEntry={!showConfirmPassword}
+                  editable={!createUserMutation.isPending}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Text style={styles.eyeText}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                </TouchableOpacity>
               </View>
+              {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+            </View>
 
+            {/* Optional Fields */}
+            <View style={styles.optionalSection}>
+              <Text style={styles.optionalTitle}>Optional Information</Text>
+              
               {/* Gender */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Gender (Optional)</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Gender (Optional)</Text>
                 <View style={styles.genderContainer}>
-                  {['Male', 'Female', 'Other'].map((gender) => (
+                  {['Male', 'Female', 'Other'].map((option) => (
                     <TouchableOpacity
-                      key={gender}
+                      key={option}
                       style={[
-                        styles.genderButton,
-                        formData.gender === gender && styles.genderButtonSelected
+                        styles.genderOption,
+                        gender === option && styles.genderOptionSelected,
                       ]}
-                      onPress={() => handleInputChange('gender', gender)}
+                      onPress={() => handleInputChange('gender', option)}
+                      disabled={createUserMutation.isPending}
                     >
-                      <Text style={[
-                        styles.genderButtonText,
-                        formData.gender === gender && styles.genderButtonTextSelected
-                      ]}>
-                        {gender}
+                      <Text
+                        style={[
+                          styles.genderText,
+                          gender === option && styles.genderTextSelected,
+                        ]}
+                      >
+                        {option}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -290,34 +354,42 @@ export default function RegisterScreen() {
               </View>
 
               {/* Date of Birth */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Date of Birth (Optional)</Text>
-                <TouchableOpacity style={styles.dateButton}>
-                  <Text style={styles.dateButtonText}>
-                    {formData.dateOfBirth || 'Select date of birth'}
-                  </Text>
-                </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Date of Birth (Optional)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={dateOfBirth}
+                  onChangeText={(value) => handleInputChange('dateOfBirth', value)}
+                  placeholder="DD/MM/YYYY"
+                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                  editable={!createUserMutation.isPending}
+                />
               </View>
             </View>
 
             {/* Register Button */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.registerButton,
-                isLoading && styles.registerButtonDisabled
+                createUserMutation.isPending && styles.registerButtonDisabled,
               ]}
               onPress={handleRegister}
-              disabled={isLoading}
+              disabled={createUserMutation.isPending}
             >
-              <Text style={styles.registerButtonText}>
-                {isLoading ? 'Creating Account...' : 'Register'}
-              </Text>
+              {createUserMutation.isPending ? (
+                <View style={styles.loadingContainer}>
+                  <View style={styles.spinner} />
+                  <Text style={styles.registerButtonText}>Creating Account...</Text>
+                </View>
+              ) : (
+                <Text style={styles.registerButtonText}>Create Account</Text>
+              )}
             </TouchableOpacity>
 
             {/* Sign In Link */}
             <View style={styles.signInContainer}>
               <Text style={styles.signInText}>Already have an account? </Text>
-              <TouchableOpacity onPress={handleSignIn}>
+              <TouchableOpacity onPress={() => router.push('/(auth)/signin')}>
                 <Text style={styles.signInLink}>Sign In</Text>
               </TouchableOpacity>
             </View>
@@ -335,69 +407,64 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   scrollView: {
     flex: 1,
   },
-  mainContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+  scrollContent: {
+    paddingBottom: 50,
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    alignItems: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  profilePictureContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  profilePictureButton: {
-    alignItems: 'center',
-  },
-  profilePicture: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  profilePictureText: {
-    fontSize: 24,
+  subtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
   },
-  profilePictureLabel: {
-    color: 'white',
-    fontSize: 14,
-    opacity: 0.8,
+  form: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
-  formContainer: {
-    marginBottom: 30,
+  nameRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  inputGroup: {
+  halfWidth: {
+    width: '48%',
+  },
+  inputContainer: {
     marginBottom: 20,
   },
-  inputLabel: {
-    color: 'white',
+  label: {
     fontSize: 16,
     fontWeight: '600',
+    color: 'white',
     marginBottom: 8,
   },
   input: {
@@ -405,107 +472,135 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
     color: 'white',
   },
   inputError: {
-    borderColor: '#ff6b6b',
+    borderColor: '#ff4757',
   },
   errorText: {
-    color: '#ff6b6b',
-    fontSize: 12,
+    color: '#ff4757',
+    fontSize: 14,
     marginTop: 4,
   },
   passwordContainer: {
     position: 'relative',
   },
   passwordInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     paddingRight: 50,
+    fontSize: 16,
+    color: 'white',
   },
-  eyeButton: {
+  eyeIcon: {
     position: 'absolute',
-    right: 15,
-    top: 16,
+    right: 16,
+    top: 14,
   },
-  eyeButtonText: {
-    fontSize: 18,
+  eyeText: {
+    fontSize: 20,
   },
-  passwordStrengthContainer: {
+  passwordStrength: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
-    gap: 8,
   },
-  passwordStrengthBar: {
+  strengthBar: {
+    width: 60,
     height: 4,
-    flex: 1,
     borderRadius: 2,
+    marginRight: 8,
   },
-  passwordStrengthText: {
+  strengthText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  optionalSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  optionalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 16,
+    textAlign: 'center',
   },
   genderContainer: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-between',
   },
-  genderButton: {
+  genderOption: {
     flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    paddingVertical: 12,
+    marginHorizontal: 4,
     alignItems: 'center',
   },
-  genderButtonSelected: {
+  genderOptionSelected: {
     backgroundColor: 'white',
+    borderColor: 'white',
   },
-  genderButtonText: {
+  genderText: {
     color: 'white',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  genderButtonTextSelected: {
-    color: '#FF6B35',
-  },
-  dateButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  dateButtonText: {
-    color: 'white',
-    fontSize: 16,
+  genderTextSelected: {
+    color: '#1E3A8A',
   },
   registerButton: {
     backgroundColor: 'white',
     paddingVertical: 16,
-    paddingHorizontal: 32,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 30,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
   registerButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   registerButtonText: {
     color: '#1E3A8A',
     fontSize: 18,
     fontWeight: 'bold',
   },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  spinner: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#1E3A8A',
+    borderTopColor: 'transparent',
+    borderRadius: 10,
+    marginRight: 10,
+  },
   signInContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: 20,
   },
   signInText: {
-    color: 'white',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 16,
   },
   signInLink: {
