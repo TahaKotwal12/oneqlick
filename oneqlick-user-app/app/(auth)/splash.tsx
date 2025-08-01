@@ -46,7 +46,7 @@ export default function SplashScreen() {
     // Auto-navigate to onboarding after 3 seconds
     timeoutRef.current = setTimeout(() => {
       console.log('Splash - Navigating to onboarding');
-      router.replace('/onboarding' as any);
+      router.replace('/(auth)/onboarding' as any);
     }, 3000) as any;
 
     return () => {
@@ -63,7 +63,7 @@ export default function SplashScreen() {
 
   return (
     <LinearGradient
-      colors={['#FF6B35', '#F7931E', '#FF4B2B']}
+      colors={['#1E3A8A', '#3B82F6', '#60A5FA']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -85,7 +85,7 @@ export default function SplashScreen() {
           ]}
         >
           <Image
-            source={require('../assets/logo/one_1_-removebg-preview.png')}
+            source={require('../../assets/logo/one_1_-removebg-preview.png')}
             style={styles.logo}
             contentFit="contain"
           />

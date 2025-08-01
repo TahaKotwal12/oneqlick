@@ -10,15 +10,15 @@ export default function Index() {
         console.log('Index - Onboarding status:', onboardingCompleted);
         
         if (onboardingCompleted === 'true') {
-          console.log('Index - Navigating to main app');
-          router.replace('/(tabs)' as any);
+          console.log('Index - Navigating to welcome screen');
+          router.replace('/(auth)/welcome' as any);
         } else {
           console.log('Index - Navigating to splash');
-          router.replace('/splash' as any);
+          router.replace('/(auth)/splash' as any);
         }
       } catch (error) {
         console.error('Index - Error checking onboarding status:', error);
-        router.replace('/splash' as any);
+        router.replace('/(auth)/splash' as any);
       }
     };
 

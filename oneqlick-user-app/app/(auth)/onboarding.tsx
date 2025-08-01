@@ -13,21 +13,21 @@ const onboardingData = [
     id: 1,
     title: 'Order Your Favorite Food',
     subtitle: 'Browse thousands of restaurants near you',
-    image: require('../assets/images/react-logo.png'),
+    image: require('../../assets/images/react-logo.png'),
     illustration: '🍕',
   },
   {
     id: 2,
     title: 'Fast & Reliable Delivery',
     subtitle: 'Get your food delivered in 30 minutes or less',
-    image: require('../assets/images/react-logo.png'),
+    image: require('../../assets/images/react-logo.png'),
     illustration: '🚚',
   },
   {
     id: 3,
     title: 'Track Your Order',
     subtitle: 'Know exactly where your order is',
-    image: require('../assets/images/react-logo.png'),
+    image: require('../../assets/images/react-logo.png'),
     illustration: '📍',
   },
 ];
@@ -160,12 +160,12 @@ export default function OnboardingScreen() {
 
   const handleSkip = async () => {
     await AsyncStorage.setItem('onboardingCompleted', 'true');
-    router.replace('/(tabs)' as any);
+    router.replace('/(auth)/welcome' as any);
   };
 
   const handleGetStarted = async () => {
     await AsyncStorage.setItem('onboardingCompleted', 'true');
-    router.replace('/(tabs)' as any);
+    router.replace('/(auth)/welcome' as any);
   };
 
   const currentScreen = onboardingData[currentIndex];
@@ -173,7 +173,7 @@ export default function OnboardingScreen() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <LinearGradient
-        colors={['#FF6B35', '#F7931E', '#FF4B2B']}
+        colors={['#1E3A8A', '#3B82F6', '#60A5FA']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
