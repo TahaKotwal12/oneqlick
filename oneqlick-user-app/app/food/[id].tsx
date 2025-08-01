@@ -175,7 +175,13 @@ export default function FoodDetailScreen() {
     Alert.alert(
       'Added to Cart!',
       `${foodItemData.name} has been added to your cart.`,
-      [{ text: 'OK' }]
+      [
+        { text: 'Continue Shopping', style: 'cancel' },
+        { 
+          text: 'View Cart', 
+          onPress: () => router.push('/cart/' as any)
+        }
+      ]
     );
     
     console.log('Added to cart:', cartItem);

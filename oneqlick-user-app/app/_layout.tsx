@@ -30,6 +30,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="restaurants" />
             <Stack.Screen name="food" />
+            <Stack.Screen name="cart" />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="auto" />

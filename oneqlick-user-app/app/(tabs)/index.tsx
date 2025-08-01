@@ -214,7 +214,7 @@ const popularRestaurants = [
   {
     id: 3,
     name: 'Dragon Palace',
-    rating: 4.7,
+    rating: 5.0,
     reviewCount: 2100,
     deliveryTime: 30,
     deliveryFee: 50,
@@ -333,7 +333,7 @@ export default function HomeScreen() {
   };
 
   const handleCartPress = () => {
-    console.log('Cart pressed');
+    router.push('/cart/' as any);
   };
 
   const handleQuickActionPress = (action: any) => {
@@ -632,6 +632,18 @@ export default function HomeScreen() {
           >
             <Text style={styles.demoButtonText}>View Margherita Pizza Details</Text>
             <Ionicons name="arrow-forward" size={20} color={COLORS.text.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Demo Cart Button */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Try Shopping Cart</Text>
+          <TouchableOpacity 
+            style={[styles.demoButton, { backgroundColor: COLORS.success }]}
+            onPress={() => router.push('/cart/' as any)}
+          >
+            <Text style={styles.demoButtonText}>View Shopping Cart</Text>
+            <Ionicons name="bag-outline" size={20} color={COLORS.text.white} />
           </TouchableOpacity>
         </View>
 
