@@ -43,8 +43,9 @@ export default function SplashScreen() {
       })
     ).start();
 
-    // Auto-navigate after 3 seconds
+    // Auto-navigate to onboarding after 3 seconds
     timeoutRef.current = setTimeout(() => {
+      console.log('Splash - Navigating to onboarding');
       router.replace('/onboarding' as any);
     }, 3000) as any;
 
