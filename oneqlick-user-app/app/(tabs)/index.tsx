@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { , Button, Card, H1, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
+import { Button, Card, H1, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 export default function HomeScreen() {
   const [count, setCount] = useState(0);
