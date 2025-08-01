@@ -1,154 +1,315 @@
-import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  Platform,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Platform,
+    RefreshControl,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
-// Dummy Data
+// Clean, Modern Colors
+const COLORS = {
+  primary: '#3B82F6',
+  primaryLight: '#60A5FA',
+  secondary: '#8B5CF6',
+  accent: '#10B981',
+  background: '#FAFAFA',
+  surface: '#FFFFFF',
+  surfaceLight: '#F8FAFC',
+  text: {
+    primary: '#111827',
+    secondary: '#6B7280',
+    tertiary: '#9CA3AF',
+    white: '#FFFFFF',
+    muted: '#D1D5DB',
+  },
+  gradient: {
+    primary: ['#3B82F6', '#1E40AF'],
+    secondary: ['#8B5CF6', '#7C3AED'],
+    accent: ['#10B981', '#059669'],
+    warm: ['#F59E0B', '#D97706'],
+  },
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  border: '#E5E7EB',
+  shadow: 'rgba(0, 0, 0, 0.08)',
+};
+
+// Refined Typography
+const TYPOGRAPHY = {
+  h1: { fontSize: 32, fontWeight: '800', lineHeight: 40 },
+  h2: { fontSize: 28, fontWeight: '700', lineHeight: 36 },
+  h3: { fontSize: 24, fontWeight: '700', lineHeight: 32 },
+  h4: { fontSize: 20, fontWeight: '600', lineHeight: 28 },
+  h5: { fontSize: 18, fontWeight: '600', lineHeight: 24 },
+  body: { fontSize: 16, fontWeight: '400', lineHeight: 24 },
+  bodyMedium: { fontSize: 15, fontWeight: '500', lineHeight: 22 },
+  bodySmall: { fontSize: 14, fontWeight: '400', lineHeight: 20 },
+  caption: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
+  small: { fontSize: 11, fontWeight: '400', lineHeight: 14 },
+};
+
+// Spacing System
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+};
+
+// Clean Banner Data
 const promotionalBanners = [
   {
     id: 1,
-    title: '50% OFF on First Order',
-    subtitle: 'Use code: FIRST50',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
-    gradient: ['#FF6B6B', '#FF8E53']
+    title: '50% OFF',
+    subtitle: 'First Order',
+    description: 'Use code WELCOME50',
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80',
+    gradient: COLORS.gradient.primary,
+    ctaText: 'Order Now'
   },
   {
     id: 2,
     title: 'Free Delivery',
-    subtitle: 'On orders above ₹199',
-    image: 'https://images.unsplash.com/photo-1504674900240-9c9c0c1d0b1a?w=400',
-    gradient: ['#4ECDC4', '#44A08D']
+    subtitle: 'No charges',
+    description: 'On orders above ₹199',
+    image: 'https://images.unsplash.com/photo-1504674900240-9c9c0c1d0b1a?w=400&q=80',
+    gradient: COLORS.gradient.accent,
+    ctaText: 'Explore'
   },
   {
     id: 3,
-    title: 'Weekend Special',
-    subtitle: 'Extra 20% off on weekends',
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400',
-    gradient: ['#667eea', '#764ba2']
+    title: '15 Min Delivery',
+    subtitle: 'Lightning fast',
+    description: 'In selected areas',
+    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
+    gradient: COLORS.gradient.secondary,
+    ctaText: 'Try Now'
   }
 ];
 
+// Clean Quick Actions
 const quickActions = [
-  { id: 1, title: 'Restaurants', icon: 'restaurant', iconFamily: 'MaterialIcons', color: '#FF6B6B' },
-  { id: 2, title: 'Groceries', icon: 'local-grocery-store', iconFamily: 'MaterialIcons', color: '#4ECDC4' },
-  { id: 3, title: 'Pharmacy', icon: 'local-pharmacy', iconFamily: 'MaterialIcons', color: '#45B7D1' },
-  { id: 4, title: 'Desserts', icon: 'cake', iconFamily: 'MaterialIcons', color: '#F7B801' },
-  { id: 5, title: 'Beverages', icon: 'local-drink', iconFamily: 'MaterialIcons', color: '#FF9FF3' },
-  { id: 6, title: 'Search', icon: 'search', iconFamily: 'Feather', color: '#A8E6CF' }
+  { 
+    id: 1, 
+    title: 'Restaurants', 
+    icon: 'restaurant-outline',
+    color: '#FF6B6B',
+    description: '1000+ options'
+  },
+  { 
+    id: 2, 
+    title: 'Groceries', 
+    icon: 'storefront-outline',
+    color: '#4ECDC4',
+    description: 'Fresh & fast'
+  },
+  { 
+    id: 3, 
+    title: 'Medicine', 
+    icon: 'medical-outline',
+    color: '#45B7D1',
+    description: '24/7 available'
+  },
+  { 
+    id: 4, 
+    title: 'More', 
+    icon: 'ellipsis-horizontal-outline',
+    color: '#8B5CF6',
+    description: 'See all'
+  },
 ];
 
+// Clean Categories
 const categories = [
-  { id: 1, name: 'Pizza', icon: 'pizza', iconFamily: 'MaterialIcons', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200' },
-  { id: 2, name: 'Burger', icon: 'fastfood', iconFamily: 'MaterialIcons', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200' },
-  { id: 3, name: 'Chinese', icon: 'ramen-dining', iconFamily: 'MaterialIcons', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200' },
-  { id: 4, name: 'South Indian', icon: 'restaurant', iconFamily: 'MaterialIcons', image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200' },
-  { id: 5, name: 'North Indian', icon: 'dinner-dining', iconFamily: 'MaterialIcons', image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=200' },
-  { id: 6, name: 'Desserts', icon: 'cake', iconFamily: 'MaterialIcons', image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=200' }
+  { 
+    id: 1, 
+    name: 'Pizza', 
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&q=80',
+    count: 120,
+    trending: true
+  },
+  { 
+    id: 2, 
+    name: 'Burgers', 
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&q=80',
+    count: 85
+  },
+  { 
+    id: 3, 
+    name: 'Chinese', 
+    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&q=80',
+    count: 95
+  },
+  { 
+    id: 4, 
+    name: 'Indian', 
+    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&q=80',
+    count: 200,
+    trending: true
+  },
+  { 
+    id: 5, 
+    name: 'Desserts', 
+    image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=200&q=80',
+    count: 60
+  },
+  { 
+    id: 6, 
+    name: 'Healthy', 
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200&q=80',
+    count: 45
+  }
 ];
 
+// Clean Restaurant Data
 const popularRestaurants = [
   {
     id: 1,
-    name: 'Pizza Palace',
+    name: 'The Pizza Corner',
     rating: 4.5,
-    deliveryTime: '25-35 min',
-    deliveryFee: '₹40',
-    cuisine: 'Italian',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300',
+    reviewCount: 1250,
+    deliveryTime: 25,
+    deliveryFee: 40,
+    cuisine: 'Italian • Pizza',
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80',
     isOpen: true,
-    discount: '20% OFF'
+    discount: 20,
+    promoted: true,
+    distance: 2.1,
+    priceLevel: 2
   },
   {
     id: 2,
-    name: 'Burger House',
+    name: 'Burger Junction',
     rating: 4.3,
-    deliveryTime: '20-30 min',
-    deliveryFee: '₹30',
-    cuisine: 'American',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300',
+    reviewCount: 890,
+    deliveryTime: 20,
+    deliveryFee: 30,
+    cuisine: 'American • Burgers',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
     isOpen: true,
-    discount: '15% OFF'
+    discount: 15,
+    distance: 1.8,
+    priceLevel: 2
   },
   {
     id: 3,
-    name: 'Chinese Wok',
+    name: 'Dragon Palace',
     rating: 4.7,
-    deliveryTime: '30-40 min',
-    deliveryFee: '₹50',
-    cuisine: 'Chinese',
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300',
+    reviewCount: 2100,
+    deliveryTime: 30,
+    deliveryFee: 50,
+    cuisine: 'Chinese • Asian',
+    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80',
     isOpen: true,
-    discount: '25% OFF'
-  }
-];
-
-const trendingItems = [
-  {
-    id: 1,
-    name: 'Margherita Pizza',
-    restaurant: 'Pizza Palace',
-    price: '₹299',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200'
-  },
-  {
-    id: 2,
-    name: 'Chicken Burger',
-    restaurant: 'Burger House',
-    price: '₹199',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200'
-  },
-  {
-    id: 3,
-    name: 'Fried Rice',
-    restaurant: 'Chinese Wok',
-    price: '₹249',
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200'
+    discount: 25,
+    promoted: true,
+    distance: 3.2,
+    priceLevel: 3
   }
 ];
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState('Mumbai, Maharashtra');
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [address, setAddress] = useState('Getting location...');
   const [cartItemCount, setCartItemCount] = useState(3);
   const [notificationCount, setNotificationCount] = useState(2);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   
   const scrollX = useRef(new Animated.Value(0)).current;
   const bannerRef = useRef<FlatList>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Fade in animation
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    // Get location on mount
+    getLocation();
+
     // Auto-scroll banners
     const interval = setInterval(() => {
       if (currentBannerIndex < promotionalBanners.length - 1) {
         setCurrentBannerIndex(currentBannerIndex + 1);
+        bannerRef.current?.scrollToIndex({ 
+          index: currentBannerIndex + 1, 
+          animated: true 
+        });
       } else {
         setCurrentBannerIndex(0);
+        bannerRef.current?.scrollToIndex({ 
+          index: 0, 
+          animated: true 
+        });
       }
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(interval);
-  }, [currentBannerIndex]);
+  }, [currentBannerIndex, fadeAnim]);
+
+  const getLocation = async () => {
+    try {
+      // Request permission
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setAddress('Location permission denied');
+        return;
+      }
+
+      // Get current position
+      let currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      
+      setLocation(currentLocation);
+
+      // Reverse geocode to get address
+      let addressResponse = await Location.reverseGeocodeAsync({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
+
+      if (addressResponse.length > 0) {
+        const addr = addressResponse[0];
+        const formattedAddress = `${addr.name || addr.street || ''}, ${addr.city || addr.district || ''}`.replace(/^,\s*/, '');
+        setAddress(formattedAddress || 'Location found');
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      setAddress('Koramangala, Bangalore'); // Fallback
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await Promise.all([
+      getLocation(),
+      new Promise(resolve => setTimeout(resolve, 1000))
+    ]);
     setRefreshing(false);
   };
 
@@ -157,7 +318,14 @@ export default function HomeScreen() {
   };
 
   const handleLocationPress = () => {
-    console.log('Location pressed');
+    Alert.alert(
+      'Change Location',
+      'Would you like to refresh your current location?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Refresh', onPress: getLocation }
+      ]
+    );
   };
 
   const handleNotificationPress = () => {
@@ -169,9 +337,7 @@ export default function HomeScreen() {
   };
 
   const handleQuickActionPress = (action: any) => {
-    if (action.title === 'Search') {
-      router.push('/(tabs)/search' as any);
-    } else if (action.title === 'Restaurants') {
+    if (action.title === 'Restaurants') {
       router.push('/restaurants/' as any);
     } else {
       console.log('Quick action pressed:', action.title);
@@ -183,24 +349,11 @@ export default function HomeScreen() {
   };
 
   const handleRestaurantPress = (restaurant: any) => {
-    console.log('Restaurant pressed:', restaurant.name);
+    router.push(`/restaurants/${restaurant.id}` as any);
   };
 
-  const handleTrendingItemPress = (item: any) => {
-    console.log('Trending item pressed:', item.name);
-  };
-
-  const renderIcon = (iconFamily: string, iconName: string, size: number, color: string) => {
-    switch (iconFamily) {
-      case 'Ionicons':
-        return <Ionicons name={iconName as any} size={size} color={color} />;
-      case 'MaterialIcons':
-        return <MaterialIcons name={iconName as any} size={size} color={color} />;
-      case 'Feather':
-        return <Feather name={iconName as any} size={size} color={color} />;
-      default:
-        return <Ionicons name="help-outline" size={size} color={color} />;
-    }
+  const renderPriceLevel = (level: number) => {
+    return '₹'.repeat(level) + '₹'.repeat(3 - level).replace(/₹/g, '○');
   };
 
   const renderBannerItem = ({ item, index }: { item: any; index: number }) => (
@@ -212,18 +365,22 @@ export default function HomeScreen() {
         end={{ x: 1, y: 1 }}
       >
         <View style={styles.bannerContent}>
-          <View style={styles.bannerTextContainer}>
+          <View style={styles.bannerLeft}>
             <Text style={styles.bannerTitle}>{item.title}</Text>
             <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
+            <Text style={styles.bannerDescription}>{item.description}</Text>
             <TouchableOpacity style={styles.bannerButton}>
-              <Text style={styles.bannerButtonText}>Order Now</Text>
+              <Text style={styles.bannerButtonText}>{item.ctaText}</Text>
+              <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
-          <Image
-            source={{ uri: item.image }}
-            style={styles.bannerImage}
-            contentFit="cover"
-          />
+          <View style={styles.bannerRight}>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.bannerImage}
+              contentFit="cover"
+            />
+          </View>
         </View>
       </LinearGradient>
     </View>
@@ -233,9 +390,10 @@ export default function HomeScreen() {
     <TouchableOpacity 
       style={styles.quickActionItem}
       onPress={() => handleQuickActionPress(item)}
+      activeOpacity={0.7}
     >
-      <View style={[styles.quickActionIcon, { backgroundColor: item.color + '20' }]}>
-        {renderIcon(item.iconFamily, item.icon, 24, item.color)}
+      <View style={[styles.quickActionIcon, { backgroundColor: item.color + '15' }]}>
+        <Ionicons name={item.icon as any} size={24} color={item.color} />
       </View>
       <Text style={styles.quickActionTitle}>{item.title}</Text>
     </TouchableOpacity>
@@ -245,6 +403,7 @@ export default function HomeScreen() {
     <TouchableOpacity 
       style={styles.categoryItem}
       onPress={() => handleCategoryPress(item)}
+      activeOpacity={0.8}
     >
       <View style={styles.categoryImageContainer}>
         <Image
@@ -252,11 +411,18 @@ export default function HomeScreen() {
           style={styles.categoryImage}
           contentFit="cover"
         />
-        <View style={styles.categoryIconOverlay}>
-          {renderIcon(item.iconFamily, item.icon, 20, '#FFFFFF')}
-        </View>
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.4)']}
+          style={styles.categoryOverlay}
+        />
+        {item.trending && (
+          <View style={styles.trendingBadge}>
+            <Text style={styles.trendingBadgeText}>Hot</Text>
+          </View>
+        )}
       </View>
       <Text style={styles.categoryName}>{item.name}</Text>
+      <Text style={styles.categoryCount}>{item.count}+ places</Text>
     </TouchableOpacity>
   );
 
@@ -264,6 +430,7 @@ export default function HomeScreen() {
     <TouchableOpacity 
       style={styles.restaurantCard}
       onPress={() => handleRestaurantPress(item)}
+      activeOpacity={0.95}
     >
       <View style={styles.restaurantImageContainer}>
         <Image
@@ -271,57 +438,45 @@ export default function HomeScreen() {
           style={styles.restaurantImage}
           contentFit="cover"
         />
-        {item.discount && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>{item.discount}</Text>
-          </View>
-        )}
-        {!item.isOpen && (
-          <View style={styles.closedOverlay}>
-            <Text style={styles.closedText}>Closed</Text>
-          </View>
-        )}
+        
+        {/* Badges */}
+        <View style={styles.restaurantBadges}>
+          {item.promoted && (
+            <View style={styles.promotedBadge}>
+              <Text style={styles.promotedText}>AD</Text>
+            </View>
+          )}
+          {item.discount > 0 && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>{item.discount}% OFF</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Delivery Time */}
+        <View style={styles.deliveryTimeCard}>
+          <Text style={styles.deliveryTimeText}>{item.deliveryTime} min</Text>
+        </View>
       </View>
       
       <View style={styles.restaurantInfo}>
         <View style={styles.restaurantHeader}>
-          <Text style={styles.restaurantName}>{item.name}</Text>
+          <Text style={styles.restaurantName} numberOfLines={1}>{item.name}</Text>
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={14} color="#FFD700" />
+            <Ionicons name="star" size={12} color="#FFA500" />
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
         </View>
         
-        <Text style={styles.cuisineText}>{item.cuisine}</Text>
+        <Text style={styles.cuisineText} numberOfLines={1}>{item.cuisine}</Text>
         
-        <View style={styles.restaurantDetails}>
-          <View style={styles.detailItem}>
-            <Ionicons name="time-outline" size={14} color="#666" />
-            <Text style={styles.detailText}>{item.deliveryTime}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Ionicons name="bicycle-outline" size={14} color="#666" />
-            <Text style={styles.detailText}>{item.deliveryFee}</Text>
-          </View>
+        <View style={styles.restaurantMeta}>
+          <Text style={styles.metaText}>{item.distance} km</Text>
+          <View style={styles.metaDot} />
+          <Text style={styles.metaText}>{renderPriceLevel(item.priceLevel)}</Text>
+          <View style={styles.metaDot} />
+          <Text style={styles.metaText}>₹{item.deliveryFee} delivery</Text>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderTrendingItem = ({ item }: { item: any }) => (
-    <TouchableOpacity 
-      style={styles.trendingCard}
-      onPress={() => handleTrendingItemPress(item)}
-    >
-      <Image
-        source={{ uri: item.image }}
-        style={styles.trendingImage}
-        contentFit="cover"
-      />
-      <View style={styles.trendingInfo}>
-        <Text style={styles.trendingName}>{item.name}</Text>
-        <Text style={styles.trendingRestaurant}>{item.restaurant}</Text>
-        <Text style={styles.trendingPrice}>{item.price}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -330,33 +485,29 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Header */}
+      {/* Clean Header */}
       <View style={styles.header}>
         <LinearGradient
-          colors={['#667eea', '#764ba2']}
+          colors={COLORS.gradient.primary}
           style={styles.headerGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
         >
-          <View style={styles.headerContent}>
+          <View style={styles.headerTop}>
             {/* Location */}
             <TouchableOpacity style={styles.locationContainer} onPress={handleLocationPress}>
-              <Ionicons name="location" size={20} color="#FFFFFF" />
+              <View style={styles.locationIcon}>
+                <Ionicons name="location" size={16} color={COLORS.text.white} />
+              </View>
               <View style={styles.locationText}>
                 <Text style={styles.deliverTo}>Deliver to</Text>
-                <Text style={styles.currentLocation}>{currentLocation}</Text>
+                <Text style={styles.currentLocation} numberOfLines={1}>{address}</Text>
               </View>
-              <Ionicons name="chevron-down" size={16} color="#FFFFFF" />
+              <Ionicons name="chevron-down" size={16} color={COLORS.text.white} />
             </TouchableOpacity>
 
-            {/* Action Buttons */}
+            {/* Actions */}
             <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleSearch}>
-                <Ionicons name="search" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              
               <TouchableOpacity style={styles.actionButton} onPress={handleNotificationPress}>
-                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+                <Ionicons name="notifications-outline" size={20} color={COLORS.text.white} />
                 {notificationCount > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{notificationCount}</Text>
@@ -365,7 +516,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.actionButton} onPress={handleCartPress}>
-                <Ionicons name="bag-outline" size={24} color="#FFFFFF" />
+                <Ionicons name="bag-outline" size={20} color={COLORS.text.white} />
                 {cartItemCount > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{cartItemCount}</Text>
@@ -374,21 +525,32 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Search Bar */}
+          <TouchableOpacity style={styles.searchBar} onPress={handleSearch}>
+            <Ionicons name="search" size={18} color={COLORS.text.tertiary} />
+            <Text style={styles.searchPlaceholder}>Search restaurants, dishes...</Text>
+            <Ionicons name="mic-outline" size={18} color={COLORS.text.tertiary} />
+          </TouchableOpacity>
         </LinearGradient>
       </View>
 
       {/* Content */}
-      <ScrollView 
-        style={styles.content}
+      <Animated.ScrollView 
+        style={[styles.content, { opacity: fadeAnim }]}
         contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
         }
         showsVerticalScrollIndicator={false}
-        bounces={true}
       >
-        {/* Promotional Banners */}
-        <View style={styles.bannerSection}>
+        {/* Banners */}
+        <View style={styles.bannersSection}>
           <FlatList
             ref={bannerRef}
             data={promotionalBanners}
@@ -397,13 +559,8 @@ export default function HomeScreen() {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-              { useNativeDriver: false }
-            )}
-            scrollEventThrottle={16}
             onMomentumScrollEnd={(event) => {
-              const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
+              const index = Math.round(event.nativeEvent.contentOffset.x / (width - SPACING.xxxl));
               setCurrentBannerIndex(index);
             }}
           />
@@ -422,7 +579,7 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What would you like to order?</Text>
+          <Text style={styles.sectionTitle}>What would you like?</Text>
           <FlatList
             data={quickActions}
             renderItem={renderQuickActionItem}
@@ -435,7 +592,12 @@ export default function HomeScreen() {
 
         {/* Categories */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Browse by Category</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Categories</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See all</Text>
+            </TouchableOpacity>
+          </View>
           <FlatList
             data={categories}
             renderItem={renderCategoryItem}
@@ -449,9 +611,9 @@ export default function HomeScreen() {
         {/* Popular Restaurants */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Restaurants</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
+            <Text style={styles.sectionTitle}>Popular nearby</Text>
+            <TouchableOpacity onPress={() => router.push('/restaurants/' as any)}>
+              <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           </View>
           {popularRestaurants.map((restaurant) => (
@@ -461,21 +623,8 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Trending Now */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Trending Now</Text>
-          <FlatList
-            data={trendingItems}
-            renderItem={renderTrendingItem}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.trendingContainer}
-          />
-        </View>
-
         <View style={styles.bottomSpacing} />
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
@@ -483,83 +632,109 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.background,
   },
   header: {
-    height: Platform.OS === 'ios' ? 120 : 100,
+    zIndex: 10,
   },
   headerGradient: {
-    flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'ios' ? SPACING.sm : SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xl,
   },
-  headerContent: {
-    flex: 1,
+  headerTop: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    flex: 1,
+    marginRight: SPACING.lg,
+  },
+  locationIcon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginRight: SPACING.md,
   },
   locationText: {
     flex: 1,
-    marginLeft: 8,
   },
   deliverTo: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    fontWeight: '400',
+    ...TYPOGRAPHY.small,
+    marginBottom: 2,
   },
   currentLocation: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.bodyMedium,
     fontWeight: '600',
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginTop: 12,
+    gap: SPACING.md,
   },
   actionButton: {
     position: 'relative',
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: SPACING.md,
+    borderRadius: 12,
   },
   badge: {
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#FF4757',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    backgroundColor: COLORS.error,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.text.white,
   },
   badgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: 'bold',
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.small,
+    fontWeight: '700',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: 12,
+    gap: SPACING.md,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  searchPlaceholder: {
+    flex: 1,
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.bodyMedium,
   },
   content: {
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: 100,
+    paddingBottom: 80,
   },
-  bannerSection: {
-    marginVertical: 20,
+  bannersSection: {
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xxxl,
   },
   bannerContainer: {
-    width: width - 40,
-    height: 180,
-    marginHorizontal: 20,
+    width: width - SPACING.xxxl,
+    height: 140,
+    marginHorizontal: SPACING.lg,
   },
   bannerGradient: {
     flex: 1,
@@ -570,103 +745,118 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 24,
+    padding: SPACING.xl,
   },
-  bannerTextContainer: {
+  bannerLeft: {
     flex: 1,
+    paddingRight: SPACING.lg,
   },
   bannerTitle: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    color: COLORS.text.white,
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
+    marginBottom: 4,
   },
   bannerSubtitle: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 16,
-    marginBottom: 16,
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
+    marginBottom: 2,
+  },
+  bannerDescription: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 16,
+    marginBottom: SPACING.md,
   },
   bannerButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   bannerButtonText: {
-    color: '#667eea',
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  bannerRight: {
+    width: 80,
+    height: 80,
   },
   bannerImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 16,
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
   bannerDots: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
   },
   bannerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    marginHorizontal: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.text.muted,
   },
   bannerDotActive: {
-    backgroundColor: '#667eea',
+    backgroundColor: COLORS.primary,
+    width: 20,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: SPACING.xxxl,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1A202C',
-    marginHorizontal: 20,
-    marginBottom: 16,
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.h4,
   },
   seeAllText: {
-    fontSize: 16,
-    color: '#667eea',
+    color: COLORS.primary,
+    ...TYPOGRAPHY.bodyMedium,
     fontWeight: '600',
   },
   quickActionsContainer: {
-    paddingHorizontal: 20,
-    gap: 20,
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.xl,
   },
   quickActionItem: {
     alignItems: 'center',
-    width: 80,
+    width: 70,
   },
   quickActionIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    marginBottom: SPACING.sm,
   },
   quickActionTitle: {
-    fontSize: 12,
-    color: '#4A5568',
-    textAlign: 'center',
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.caption,
     fontWeight: '500',
+    textAlign: 'center',
   },
   categoriesContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.lg,
   },
   categoryItem: {
     alignItems: 'center',
@@ -674,166 +864,164 @@ const styles = StyleSheet.create({
   },
   categoryImageContainer: {
     position: 'relative',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   categoryImage: {
     width: 80,
     height: 80,
     borderRadius: 16,
   },
-  categoryIconOverlay: {
-    position: 'absolute',
-    bottom: -8,
-    right: -8,
-    backgroundColor: '#667eea',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-  },
-  categoryName: {
-    fontSize: 14,
-    color: '#2D3748',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  restaurantCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  restaurantImageContainer: {
-    position: 'relative',
-  },
-  restaurantImage: {
-    width: '100%',
-    height: 160,
-  },
-  discountBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#FF4757',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  discountText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  closedOverlay: {
+  categoryOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 16,
   },
-  closedText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+  trendingBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: COLORS.error,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  trendingBadgeText: {
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.small,
+    fontWeight: '600',
+  },
+  categoryName: {
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  categoryCount: {
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.small,
+  },
+  restaurantCard: {
+    backgroundColor: COLORS.surface,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  restaurantImageContainer: {
+    position: 'relative',
+    height: 140,
+  },
+  restaurantImage: {
+    width: '100%',
+    height: '100%',
+  },
+  restaurantBadges: {
+    position: 'absolute',
+    top: SPACING.md,
+    left: SPACING.md,
+    right: SPACING.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  promotedBadge: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  promotedText: {
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.small,
+    fontWeight: '700',
+  },
+  discountBadge: {
+    backgroundColor: COLORS.error,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  discountText: {
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.small,
+    fontWeight: '700',
+  },
+  deliveryTimeCard: {
+    position: 'absolute',
+    bottom: SPACING.md,
+    right: SPACING.md,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: 6,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  deliveryTimeText: {
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.small,
+    fontWeight: '600',
   },
   restaurantInfo: {
-    padding: 16,
+    padding: SPACING.lg,
   },
   restaurantHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.xs,
   },
   restaurantName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1A202C',
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.h5,
     flex: 1,
+    marginRight: SPACING.md,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#48BB78',
-    paddingHorizontal: 8,
+    backgroundColor: COLORS.success,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 6,
+    gap: 2,
   },
   ratingText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 4,
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.small,
+    fontWeight: '600',
   },
   cuisineText: {
-    fontSize: 14,
-    color: '#718096',
-    marginBottom: 12,
+    color: COLORS.text.secondary,
+    ...TYPOGRAPHY.bodySmall,
+    marginBottom: SPACING.sm,
   },
-  restaurantDetails: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  detailItem: {
+  restaurantMeta: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  detailText: {
-    fontSize: 12,
-    color: '#718096',
-    marginLeft: 4,
+  metaText: {
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.small,
   },
-  trendingContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  trendingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: 160,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  trendingImage: {
-    width: '100%',
-    height: 100,
-  },
-  trendingInfo: {
-    padding: 12,
-  },
-  trendingName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1A202C',
-    marginBottom: 4,
-  },
-  trendingRestaurant: {
-    fontSize: 12,
-    color: '#718096',
-    marginBottom: 4,
-  },
-  trendingPrice: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#667eea',
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: COLORS.text.tertiary,
+    marginHorizontal: SPACING.sm,
   },
   bottomSpacing: {
-    height: 20,
+    height: 40,
   },
 });
