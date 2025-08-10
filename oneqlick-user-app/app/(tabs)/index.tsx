@@ -6,51 +6,57 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Platform,
-    RefreshControl,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Platform,
+  RefreshControl,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
-// Clean, Modern Colors
+// Indian Food Delivery App Colors
 const COLORS = {
-  primary: '#3B82F6',
-  primaryLight: '#60A5FA',
-  secondary: '#8B5CF6',
-  accent: '#10B981',
+  primary: '#FF6B35', // Warm Orange - Indian Food Theme
+  primaryLight: '#FF8A65',
+  secondary: '#4CAF50', // Green for Fresh Food
+  accent: '#FF9800', // Orange Accent
   background: '#FAFAFA',
   surface: '#FFFFFF',
   surfaceLight: '#F8FAFC',
   text: {
-    primary: '#111827',
-    secondary: '#6B7280',
-    tertiary: '#9CA3AF',
+    primary: '#1A1A1A',
+    secondary: '#4A4A4A',
+    tertiary: '#8A8A8A',
     white: '#FFFFFF',
     muted: '#D1D5DB',
   },
   gradient: {
-    primary: ['#3B82F6', '#1E40AF'],
-    secondary: ['#8B5CF6', '#7C3AED'],
-    accent: ['#10B981', '#059669'],
-    warm: ['#F59E0B', '#D97706'],
+    primary: ['#FF6B35', '#FF8A65'],
+    secondary: ['#4CAF50', '#66BB6A'],
+    accent: ['#FF9800', '#FFB74D'],
+    warm: ['#FF5722', '#FF7043'],
+    indian: ['#E91E63', '#F06292'],
   },
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  border: '#E5E7EB',
-  shadow: 'rgba(0, 0, 0, 0.08)',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#F44336',
+  border: '#E0E0E0',
+  shadow: 'rgba(0, 0, 0, 0.1)',
+  indian: {
+    saffron: '#FF9933',
+    white: '#FFFFFF',
+    green: '#138808',
+  }
 };
 
-// Refined Typography
+// Typography System
 const TYPOGRAPHY = {
   h1: { fontSize: 32, fontWeight: '800', lineHeight: 40 },
   h2: { fontSize: 28, fontWeight: '700', lineHeight: 36 },
@@ -75,7 +81,7 @@ const SPACING = {
   xxxl: 32,
 };
 
-// Clean Banner Data
+// Indian Food Delivery Banners
 const promotionalBanners = [
   {
     id: 1,
@@ -92,7 +98,7 @@ const promotionalBanners = [
     subtitle: 'No charges',
     description: 'On orders above ₹199',
     image: 'https://images.unsplash.com/photo-1504674900240-9c9c0c1d0b1a?w=400&q=80',
-    gradient: COLORS.gradient.accent,
+    gradient: COLORS.gradient.secondary,
     ctaText: 'Explore'
   },
   {
@@ -101,57 +107,58 @@ const promotionalBanners = [
     subtitle: 'Lightning fast',
     description: 'In selected areas',
     image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
-    gradient: COLORS.gradient.secondary,
+    gradient: COLORS.gradient.accent,
     ctaText: 'Try Now'
   }
 ];
 
-// Clean Quick Actions
+// Indian Food Quick Actions
 const quickActions = [
   { 
     id: 1, 
     title: 'Restaurants', 
     icon: 'restaurant-outline',
-    color: '#FF6B6B',
+    color: '#FF6B35',
     description: '1000+ options'
   },
   { 
     id: 2, 
     title: 'Groceries', 
     icon: 'storefront-outline',
-    color: '#4ECDC4',
+    color: '#4CAF50',
     description: 'Fresh & fast'
   },
   { 
     id: 3, 
     title: 'Medicine', 
     icon: 'medical-outline',
-    color: '#45B7D1',
+    color: '#2196F3',
     description: '24/7 available'
   },
   { 
     id: 4, 
     title: 'More', 
     icon: 'ellipsis-horizontal-outline',
-    color: '#8B5CF6',
+    color: '#9C27B0',
     description: 'See all'
   },
 ];
 
-// Clean Categories
+// Indian Food Categories
 const categories = [
   { 
     id: 1, 
-    name: 'Pizza', 
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&q=80',
-    count: 120,
+    name: 'North Indian', 
+    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&q=80',
+    count: 150,
     trending: true
   },
   { 
     id: 2, 
-    name: 'Burgers', 
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&q=80',
-    count: 85
+    name: 'South Indian', 
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&q=80',
+    count: 120,
+    trending: true
   },
   { 
     id: 3, 
@@ -161,8 +168,8 @@ const categories = [
   },
   { 
     id: 4, 
-    name: 'Indian', 
-    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&q=80',
+    name: 'Street Food', 
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&q=80',
     count: 200,
     trending: true
   },
@@ -170,27 +177,27 @@ const categories = [
     id: 5, 
     name: 'Desserts', 
     image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=200&q=80',
-    count: 60
+    count: 80
   },
   { 
     id: 6, 
-    name: 'Healthy', 
+    name: 'Beverages', 
     image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200&q=80',
-    count: 45
+    count: 65
   }
 ];
 
-// Clean Restaurant Data
+// Indian Restaurant Data
 const popularRestaurants = [
   {
     id: 1,
-    name: 'The Pizza Corner',
+    name: 'Dhaba Express',
     rating: 4.5,
     reviewCount: 1250,
     deliveryTime: 25,
     deliveryFee: 40,
-    cuisine: 'Italian • Pizza',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80',
+    cuisine: 'North Indian • Punjabi',
+    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=80',
     isOpen: true,
     discount: 20,
     promoted: true,
@@ -199,13 +206,13 @@ const popularRestaurants = [
   },
   {
     id: 2,
-    name: 'Burger Junction',
+    name: 'Idli House',
     rating: 4.3,
     reviewCount: 890,
     deliveryTime: 20,
     deliveryFee: 30,
-    cuisine: 'American • Burgers',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    cuisine: 'South Indian • Breakfast',
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80',
     isOpen: true,
     discount: 15,
     distance: 1.8,
@@ -213,12 +220,12 @@ const popularRestaurants = [
   },
   {
     id: 3,
-    name: 'Dragon Palace',
+    name: 'Chinese Wok',
     rating: 5.0,
     reviewCount: 2100,
     deliveryTime: 30,
     deliveryFee: 50,
-    cuisine: 'Chinese • Asian',
+    cuisine: 'Chinese • Indo-Chinese',
     image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80',
     isOpen: true,
     discount: 25,
@@ -353,7 +360,7 @@ export default function HomeScreen() {
   };
 
   const renderPriceLevel = (level: number) => {
-    return '₹'.repeat(level) + '₹'.repeat(3 - level).replace(/₹/g, '○');
+    return '₹'.repeat(level) + '○'.repeat(3 - level);
   };
 
   const renderBannerItem = ({ item, index }: { item: any; index: number }) => (
@@ -485,7 +492,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Clean Header */}
+      {/* Fixed Header with Location and Actions */}
       <View style={styles.header}>
         <LinearGradient
           colors={COLORS.gradient.primary}
@@ -525,14 +532,16 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Search Bar */}
-          <TouchableOpacity style={styles.searchBar} onPress={handleSearch}>
-            <Ionicons name="search" size={18} color={COLORS.text.tertiary} />
-            <Text style={styles.searchPlaceholder}>Search restaurants, dishes...</Text>
-            <Ionicons name="mic-outline" size={18} color={COLORS.text.tertiary} />
-          </TouchableOpacity>
         </LinearGradient>
+      </View>
+
+      {/* Search Bar - Outside Blue Container */}
+      <View style={styles.searchContainer}>
+        <TouchableOpacity style={styles.searchBar} onPress={handleSearch}>
+          <Ionicons name="search" size={18} color={COLORS.text.tertiary} />
+          <Text style={styles.searchPlaceholder}>Search restaurants, dishes...</Text>
+          <Ionicons name="mic-outline" size={18} color={COLORS.text.tertiary} />
+        </TouchableOpacity>
       </View>
 
       {/* Content */}
@@ -623,6 +632,101 @@ export default function HomeScreen() {
           ))}
         </View>
 
+        {/* Local Vendors Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Local Vendors</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See all</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.localVendorsContainer}>
+            <TouchableOpacity style={styles.localVendorCard}>
+              <View style={styles.vendorIcon}>
+                <Ionicons name="bicycle-outline" size={24} color={COLORS.primary} />
+              </View>
+              <Text style={styles.vendorTitle}>Street Food</Text>
+              <Text style={styles.vendorSubtitle}>Local favorites</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.localVendorCard}>
+              <View style={styles.vendorIcon}>
+                <Ionicons name="home-outline" size={24} color={COLORS.secondary} />
+              </View>
+              <Text style={styles.vendorTitle}>Home Kitchen</Text>
+              <Text style={styles.vendorSubtitle}>Homemade food</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.localVendorCard}>
+              <View style={styles.vendorIcon}>
+                <Ionicons name="leaf-outline" size={24} color={COLORS.accent} />
+              </View>
+              <Text style={styles.vendorTitle}>Organic</Text>
+              <Text style={styles.vendorSubtitle}>Fresh produce</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Regional Specialties */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Regional Specialties</Text>
+          <View style={styles.regionalContainer}>
+            <TouchableOpacity style={styles.regionalCard}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&q=80' }}
+                style={styles.regionalImage}
+                contentFit="cover"
+              />
+              <View style={styles.regionalOverlay}>
+                <Text style={styles.regionalTitle}>Punjabi Dhaba</Text>
+                <Text style={styles.regionalSubtitle}>Butter Chicken, Dal Makhani</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.regionalCard}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&q=80' }}
+                style={styles.regionalImage}
+                contentFit="cover"
+              />
+              <View style={styles.regionalOverlay}>
+                <Text style={styles.regionalTitle}>South Indian</Text>
+                <Text style={styles.regionalSubtitle}>Idli, Dosa, Sambar</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Rural Features */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rural Features</Text>
+          <View style={styles.ruralFeaturesContainer}>
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="language-outline" size={24} color={COLORS.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Local Language</Text>
+              <Text style={styles.featureSubtitle}>Hindi, Punjabi, Tamil</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="cash-outline" size={24} color={COLORS.secondary} />
+              </View>
+              <Text style={styles.featureTitle}>Cash on Delivery</Text>
+              <Text style={styles.featureSubtitle}>No online payment needed</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="call-outline" size={24} color={COLORS.accent} />
+              </View>
+              <Text style={styles.featureTitle}>Phone Orders</Text>
+              <Text style={styles.featureSubtitle}>Call to order</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Demo Food Detail Button */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Try Food Detail Screen</Text>
@@ -662,15 +766,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerGradient: {
-    paddingTop: Platform.OS === 'ios' ? SPACING.sm : SPACING.xl,
+    paddingTop: Platform.OS === 'ios' ? SPACING.xxl : SPACING.xxxl,
     paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
+    paddingBottom: SPACING.lg,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -726,19 +829,28 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.small,
     fontWeight: '700',
   },
+  searchContainer: {
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.surfaceLight,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     borderRadius: 12,
     gap: SPACING.md,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   searchPlaceholder: {
     flex: 1,
@@ -1067,5 +1179,114 @@ const styles = StyleSheet.create({
     color: COLORS.text.white,
     ...TYPOGRAPHY.bodyMedium,
     fontWeight: '600',
+  },
+  localVendorsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+  },
+  localVendorCard: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.lg,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  vendorIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  vendorTitle: {
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  vendorSubtitle: {
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.small,
+    textAlign: 'center',
+  },
+  regionalContainer: {
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.lg,
+  },
+  regionalCard: {
+    position: 'relative',
+    height: 120,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: SPACING.md,
+  },
+  regionalImage: {
+    width: '100%',
+    height: '100%',
+  },
+  regionalOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SPACING.lg,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  regionalTitle: {
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.h5,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  regionalSubtitle: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    ...TYPOGRAPHY.bodySmall,
+  },
+  ruralFeaturesContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+  },
+  ruralFeatureCard: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.lg,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  featureIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  featureTitle: {
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  featureSubtitle: {
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.small,
+    textAlign: 'center',
   },
 });
