@@ -49,6 +49,42 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Orders',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="receipt" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Cart',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'Favorites',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size || 24} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
