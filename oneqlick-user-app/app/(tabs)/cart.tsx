@@ -1,37 +1,47 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
     Alert,
+    Dimensions,
     FlatList,
+    Modal,
+    Platform,
     SafeAreaView,
-    StatusBar,
+    ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 
-// Design system constants
+const { width } = Dimensions.get('window');
+
+// Colors - Using the same color scheme as home screen
 const COLORS = {
-  primary: '#667eea',
-  secondary: '#f093fb',
-  accent: '#4facfe',
-  success: '#43e97b',
-  warning: '#fa709a',
-  error: '#ff6b6b',
-  surface: '#ffffff',
-  surfaceLight: '#f8fafc',
+  primary: '#FF6B35', // Warm Orange - Indian Food Theme
+  secondary: '#4CAF50', // Green for Fresh Food
+  accent: '#FF9800', // Orange Accent
+  background: '#FAFAFA',
+  surface: '#FFFFFF',
   text: {
-    primary: '#1e293b',
-    secondary: '#64748b',
-    tertiary: '#94a3b8',
-    white: '#ffffff',
+    primary: '#1A1A1A',
+    secondary: '#4A4A4A',
+    tertiary: '#8A8A8A',
+    white: '#FFFFFF',
   },
-  shadow: '#000000',
-  border: '#e2e8f0',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#F44336',
+  border: '#E0E0E0',
+  veg: '#4CAF50',
+  nonVeg: '#F44336',
 };
 
+// Typography System
 const TYPOGRAPHY = {
   h1: { fontSize: 28, lineHeight: 36 },
   h2: { fontSize: 24, lineHeight: 32 },
@@ -54,223 +64,517 @@ const SPACING = {
   xxxl: 32,
 };
 
-// Dummy data for cart items
-const CART_DATA = [
-  {
+// Dummy cart data
+const cartData = {
+  restaurant: {
     id: '1',
-    restaurantName: 'Punjabi Dhaba',
-    itemName: 'Butter Chicken',
-    price: 280,
-    quantity: 2,
+    name: 'Punjabi Dhaba',
     image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=100&q=80',
-    description: 'Creamy tomato-based curry with tender chicken',
-    preparationTime: '20-25 min',
+    deliveryTime: '25-30 min',
+    deliveryFee: 40,
+  },
+  items: [
+    {
+      id: '1',
+      name: 'Butter Chicken',
+      image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=150&q=80',
+      price: 280,
+      originalPrice: 320,
+      quantity: 2,
+      isVeg: false,
+      variant: 'Regular Portion',
+      addOns: ['Extra Gravy', 'Butter Naan'],
+      instructions: 'Medium spice level',
+      restaurant: 'Punjabi Dhaba',
+    },
+    {
+      id: '2',
+      name: 'Dal Makhani',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&q=80',
+      price: 120,
+      originalPrice: 150,
+      quantity: 1,
+      isVeg: true,
+      variant: 'Regular Portion',
+      addOns: [],
+      instructions: '',
+      restaurant: 'Punjabi Dhaba',
+    },
+    {
+      id: '3',
+      name: 'Naan',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&q=80',
+      price: 25,
+      originalPrice: 30,
+      quantity: 3,
+      isVeg: true,
+      variant: 'Regular Size',
+      addOns: ['Butter'],
+      instructions: 'Extra crispy',
+      restaurant: 'Punjabi Dhaba',
+    },
+  ],
+  deliveryAddress: {
+    type: 'Home',
+    address: '123, MG Road, Koramangala, Bangalore',
+    landmark: 'Near Metro Station',
+  },
+  appliedCoupon: null,
+};
+
+// Available coupons
+const availableCoupons = [
+  {
+    id: 'WELCOME50',
+    code: 'WELCOME50',
+    title: '50% Off',
+    description: 'Get 50% off on orders above ₹299',
+    discount: 50,
+    minOrder: 299,
+    maxDiscount: 150,
   },
   {
-    id: '2',
-    restaurantName: 'Punjabi Dhaba',
-    itemName: 'Dal Makhani',
-    price: 120,
-    quantity: 1,
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=100&q=80',
-    description: 'Black lentils cooked with cream and butter',
-    preparationTime: '15-20 min',
+    id: 'FREEDEL',
+    code: 'FREEDEL',
+    title: 'Free Delivery',
+    description: 'Free delivery on all orders',
+    discount: 0,
+    minOrder: 0,
+    maxDiscount: 0,
+    freeDelivery: true,
   },
   {
-    id: '3',
-    restaurantName: 'Punjabi Dhaba',
-    itemName: 'Naan',
-    price: 25,
-    quantity: 3,
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=100&q=80',
-    description: 'Soft leavened flatbread',
-    preparationTime: '10-15 min',
+    id: 'SAVE100',
+    code: 'SAVE100',
+    title: '₹100 Off',
+    description: 'Flat ₹100 off on orders above ₹500',
+    discount: 100,
+    minOrder: 500,
+    maxDiscount: 100,
   },
 ];
 
 export default function CartScreen() {
-  const [cartItems, setCartItems] = useState(CART_DATA);
+  const [cartItems, setCartItems] = useState(cartData.items);
+  const [appliedCoupon, setAppliedCoupon] = useState(cartData.appliedCoupon);
+  const [couponCode, setCouponCode] = useState('');
+  const [showCoupons, setShowCoupons] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState(cartData.deliveryAddress);
 
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      Alert.alert(
-        'Remove Item',
-        'Do you want to remove this item from cart?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', style: 'destructive', onPress: () => removeItem(id) },
-        ]
+  // Calculate prices
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = appliedCoupon?.freeDelivery ? 0 : cartData.restaurant.deliveryFee;
+  const taxes = Math.round(subtotal * 0.05); // 5% tax
+  const platformFee = 5;
+  
+  let discount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discount > 0) {
+      discount = Math.min(
+        (subtotal * appliedCoupon.discount) / 100,
+        appliedCoupon.maxDiscount
       );
+    }
+  }
+  
+  const total = subtotal + deliveryFee + taxes + platformFee - discount;
+
+  const updateQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity === 0) {
+      handleRemoveItem(itemId);
       return;
     }
-
+    
     setCartItems(prev => 
       prev.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
       )
     );
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const handleRemoveItem = (itemId: string) => {
+    Alert.alert(
+      'Remove Item',
+      'Are you sure you want to remove this item from cart?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Remove', 
+          style: 'destructive',
+          onPress: () => {
+            setCartItems(prev => prev.filter(item => item.id !== itemId));
+          }
+        }
+      ]
+    );
   };
 
-  const getSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const applyCoupon = (coupon: any) => {
+    if (subtotal < coupon.minOrder) {
+      Alert.alert(
+        'Invalid Coupon',
+        `Minimum order value should be ₹${coupon.minOrder} to apply this coupon.`
+      );
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setCouponCode(coupon.code);
+    setShowCoupons(false);
+    Alert.alert('Success!', `Coupon ${coupon.code} applied successfully.`);
   };
 
-  const getDeliveryFee = () => {
-    return getSubtotal() > 500 ? 0 : 40;
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
   };
 
-  const getTotal = () => {
-    return getSubtotal() + getDeliveryFee();
+  const handleManualCouponApply = () => {
+    if (!couponCode.trim()) return;
+
+    const coupon = availableCoupons.find(c => 
+      c.code.toLowerCase() === couponCode.trim().toLowerCase()
+    );
+
+    if (coupon) {
+      applyCoupon(coupon);
+    } else {
+      Alert.alert('Invalid Coupon', 'Please enter a valid coupon code.');
+    }
+  };
+
+  const handleProceedToCheckout = () => {
+    if (cartItems.length === 0) {
+      Alert.alert('Empty Cart', 'Your cart is empty. Add some items to proceed.');
+      return;
+    }
+
+    Alert.alert(
+      'Proceed to Checkout',
+      `Total amount: ₹${total}\nProceed to payment?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Continue', onPress: () => console.log('Proceeding to checkout...') }
+      ]
+    );
   };
 
   const renderCartItem = ({ item }: { item: any }) => (
     <View style={styles.cartItem}>
       <View style={styles.itemImageContainer}>
-        <View style={styles.itemImage}>
-          <Text style={styles.itemImageText}>{item.itemName.charAt(0)}</Text>
+        <Image source={{ uri: item.image }} style={styles.itemImage} contentFit="cover" />
+        <View style={[styles.vegIndicator, { backgroundColor: item.isVeg ? COLORS.veg : COLORS.nonVeg }]}>
+          <View style={styles.vegDot} />
         </View>
       </View>
-      
+
       <View style={styles.itemDetails}>
-        <View style={styles.itemHeader}>
-          <Text style={styles.itemName}>{item.itemName}</Text>
-          <TouchableOpacity onPress={() => removeItem(item.id)}>
-            <Ionicons name="close" size={20} color={COLORS.text.tertiary} />
+        <Text style={styles.itemName}>{item.name}</Text>
+        {item.variant && (
+          <Text style={styles.itemVariant}>{item.variant}</Text>
+        )}
+        {item.addOns.length > 0 && (
+          <Text style={styles.itemAddOns}>
+            Add-ons: {item.addOns.join(', ')}
+          </Text>
+        )}
+        {item.instructions && (
+          <Text style={styles.itemInstructions}>
+            Note: {item.instructions}
+          </Text>
+        )}
+        
+        <View style={styles.itemPriceRow}>
+          <Text style={styles.itemPrice}>₹{item.price}</Text>
+          {item.originalPrice > item.price && (
+            <Text style={styles.itemOriginalPrice}>₹{item.originalPrice}</Text>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.itemActions}>
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => handleRemoveItem(item.id)}
+        >
+          <Ionicons name="trash-outline" size={18} color={COLORS.error} />
+        </TouchableOpacity>
+
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => updateQuantity(item.id, item.quantity - 1)}
+          >
+            <Ionicons name="remove" size={16} color={COLORS.primary} />
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => updateQuantity(item.id, item.quantity + 1)}
+          >
+            <Ionicons name="add" size={16} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
-        
-        <Text style={styles.restaurantName}>{item.restaurantName}</Text>
-        <Text style={styles.itemDescription}>{item.description}</Text>
-        
-        <View style={styles.itemFooter}>
-          <View style={styles.quantityContainer}>
-            <TouchableOpacity 
-              style={styles.quantityButton}
-              onPress={() => updateQuantity(item.id, item.quantity - 1)}
-            >
-              <Ionicons name="remove" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
-            
-            <Text style={styles.quantityText}>{item.quantity}</Text>
-            
-            <TouchableOpacity 
-              style={styles.quantityButton}
-              onPress={() => updateQuantity(item.id, item.quantity + 1)}
-            >
-              <Ionicons name="add" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
-        </View>
       </View>
+    </View>
+  );
+
+  const renderCouponModal = () => (
+    <Modal
+      visible={showCoupons}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowCoupons(false)}
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Available Coupons</Text>
+          <TouchableOpacity onPress={() => setShowCoupons(false)}>
+            <Ionicons name="close" size={24} color={COLORS.text.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={availableCoupons}
+          style={styles.couponsList}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.couponItem}
+              onPress={() => applyCoupon(item)}
+            >
+              <View style={styles.couponLeft}>
+                <Text style={styles.couponCode}>{item.code}</Text>
+                <Text style={styles.couponTitle}>{item.title}</Text>
+                <Text style={styles.couponDescription}>{item.description}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.applyCouponButton}
+                onPress={() => applyCoupon(item)}
+              >
+                <Text style={styles.applyCouponText}>Apply</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item) => item.id}
+        />
+      </SafeAreaView>
+    </Modal>
+  );
+
+  const renderEmptyCart = () => (
+    <View style={styles.emptyCartContainer}>
+      <Ionicons name="bag-outline" size={80} color={COLORS.text.tertiary} />
+      <Text style={styles.emptyCartTitle}>Your cart is empty</Text>
+      <Text style={styles.emptyCartSubtitle}>
+        Looks like you haven't added anything to your cart yet
+      </Text>
+      <TouchableOpacity
+        style={styles.continueShoppingButton}
+        onPress={() => router.push('/(tabs)/' as any)}
+      >
+        <Text style={styles.continueShoppingText}>Continue Shopping</Text>
+      </TouchableOpacity>
     </View>
   );
 
   if (cartItems.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
+        <StatusBar style="dark" />
         
-        <LinearGradient
-          colors={[COLORS.primary, COLORS.secondary]}
-          style={styles.header}
-        >
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Cart</Text>
-          </View>
-        </LinearGradient>
-
-        <View style={styles.emptyState}>
-          <Ionicons name="cart-outline" size={80} color={COLORS.text.tertiary} />
-          <Text style={styles.emptyStateTitle}>Your Cart is Empty</Text>
-          <Text style={styles.emptyStateSubtitle}>
-            Add delicious food items to get started
-          </Text>
-          <TouchableOpacity style={styles.emptyStateButton}>
-            <Text style={styles.emptyStateButtonText}>Explore Restaurants</Text>
-          </TouchableOpacity>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Cart</Text>
         </View>
+
+        {renderEmptyCart()}
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
+      <StatusBar style="dark" />
       
       {/* Header */}
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.secondary]}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Cart</Text>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="trash-outline" size={24} color={COLORS.text.white} />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Cart</Text>
+      </View>
 
-      {/* Cart Items */}
-      <FlatList
-        data={cartItems}
-        renderItem={renderCartItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.cartList}
-        showsVerticalScrollIndicator={false}
-      />
-
-      {/* Price Summary */}
-      <View style={styles.priceSummary}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>₹{getSubtotal()}</Text>
-        </View>
-        
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Delivery Fee</Text>
-          <Text style={styles.summaryValue}>
-            {getDeliveryFee() === 0 ? 'Free' : `₹${getDeliveryFee()}`}
-          </Text>
-        </View>
-        
-        {getDeliveryFee() > 0 && (
-          <View style={styles.freeDeliveryInfo}>
-            <Ionicons name="information-circle" size={16} color={COLORS.success} />
-            <Text style={styles.freeDeliveryText}>
-              Add ₹{500 - getSubtotal()} more for free delivery
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Restaurant Header */}
+        <View style={styles.restaurantHeader}>
+          <Image
+            source={{ uri: cartData.restaurant.image }}
+            style={styles.restaurantImage}
+            contentFit="cover"
+          />
+          <View style={styles.restaurantInfo}>
+            <Text style={styles.restaurantName}>{cartData.restaurant.name}</Text>
+            <Text style={styles.deliveryTime}>
+              <Ionicons name="time-outline" size={14} color={COLORS.text.secondary} />
+              {' '}{cartData.restaurant.deliveryTime}
             </Text>
           </View>
-        )}
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.summaryRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>₹{getTotal()}</Text>
-        </View>
-      </View>
-
-      {/* Checkout Button */}
-      <View style={styles.checkoutContainer}>
-        <TouchableOpacity 
-          style={styles.checkoutButton}
-          onPress={() => Alert.alert('Checkout', 'Proceeding to checkout...')}
-        >
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            style={styles.checkoutGradient}
+          <TouchableOpacity
+            style={styles.addMoreButton}
+            onPress={() => router.push(`/restaurants/${cartData.restaurant.id}` as any)}
           >
-            <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-            <Text style={styles.checkoutSubtext}>₹{getTotal()} • {cartItems.length} items</Text>
-          </LinearGradient>
+            <Text style={styles.addMoreText}>Add More</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Cart Items */}
+        <View style={styles.section}>
+          <FlatList
+            data={cartItems}
+            renderItem={renderCartItem}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+          />
+        </View>
+
+        {/* Delivery Address */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Delivery Address</Text>
+            <TouchableOpacity onPress={() => setShowAddressModal(true)}>
+              <Text style={styles.changeText}>Change</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.addressContainer}>
+            <Ionicons name="location" size={20} color={COLORS.primary} />
+            <View style={styles.addressDetails}>
+              <Text style={styles.addressType}>{deliveryAddress.type}</Text>
+              <Text style={styles.addressText}>{deliveryAddress.address}</Text>
+              {deliveryAddress.landmark && (
+                <Text style={styles.addressLandmark}>{deliveryAddress.landmark}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Bill Details */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Bill Details</Text>
+          <View style={styles.billDetails}>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Subtotal</Text>
+              <Text style={styles.billValue}>₹{subtotal}</Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Delivery Fee</Text>
+              <Text style={[styles.billValue, deliveryFee === 0 && styles.freeText]}>
+                {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+              </Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Taxes & Charges</Text>
+              <Text style={styles.billValue}>₹{taxes}</Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Platform Fee</Text>
+              <Text style={styles.billValue}>₹{platformFee}</Text>
+            </View>
+            {discount > 0 && (
+              <View style={styles.billRow}>
+                <Text style={[styles.billLabel, styles.discountText]}>
+                  Discount ({appliedCoupon?.code})
+                </Text>
+                <Text style={[styles.billValue, styles.discountText]}>-₹{discount}</Text>
+              </View>
+            )}
+            <View style={[styles.billRow, styles.totalRow]}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>₹{total}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Coupon Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Apply Coupon</Text>
+          
+          {appliedCoupon ? (
+            <View style={styles.appliedCouponContainer}>
+              <View style={styles.appliedCouponInfo}>
+                <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                <Text style={styles.appliedCouponText}>
+                  {appliedCoupon.code} applied successfully!
+                </Text>
+              </View>
+              <TouchableOpacity onPress={removeCoupon}>
+                <Text style={styles.removeCouponText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.couponInputContainer}>
+                <TextInput
+                  style={styles.couponInput}
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                  onChangeText={setCouponCode}
+                  autoCapitalize="characters"
+                />
+                <TouchableOpacity
+                  style={styles.applyCouponInputButton}
+                  onPress={handleManualCouponApply}
+                >
+                  <Text style={styles.applyCouponInputText}>Apply</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity
+                style={styles.viewCouponsButton}
+                onPress={() => setShowCoupons(true)}
+              >
+                <Text style={styles.viewCouponsText}>View Available Coupons</Text>
+                <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        {/* Rural Features */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rural Features</Text>
+          <View style={styles.ruralFeaturesContainer}>
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <Ionicons name="cash-outline" size={24} color={COLORS.success} />
+              <Text style={styles.ruralFeatureTitle}>Cash on Delivery</Text>
+              <Text style={styles.ruralFeatureSubtitle}>Pay when you receive</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <Ionicons name="call-outline" size={24} color={COLORS.primary} />
+              <Text style={styles.ruralFeatureTitle}>Phone Orders</Text>
+              <Text style={styles.ruralFeatureSubtitle}>Call to order</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+
+      {/* Bottom Bar */}
+      <View style={styles.bottomBar}>
+        <View style={styles.totalContainer}>
+          <Text style={styles.bottomTotalLabel}>Total</Text>
+          <Text style={styles.bottomTotalValue}>₹{total}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.checkoutButton}
+          onPress={handleProceedToCheckout}
+        >
+          <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+          <Ionicons name="arrow-forward" size={20} color={COLORS.text.white} />
         </TouchableOpacity>
       </View>
+
+      {renderCouponModal()}
     </SafeAreaView>
   );
 }
@@ -278,227 +582,484 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.surfaceLight,
+    backgroundColor: COLORS.background,
   },
   header: {
-    paddingTop: 60,
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  headerContent: {
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  content: {
+    flex: 1,
+  },
+  restaurantHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    marginBottom: 8,
+  },
+  restaurantImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  restaurantInfo: {
+    flex: 1,
+  },
+  restaurantName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 4,
+  },
+  deliveryTime: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  addMoreButton: {
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  addMoreText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  section: {
+    backgroundColor: COLORS.surface,
+    marginBottom: 8,
+    padding: 16,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
-  headerTitle: {
-    color: COLORS.text.white,
-    ...TYPOGRAPHY.h1,
-    fontWeight: '700',
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
   },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartList: {
-    padding: SPACING.lg,
-    paddingBottom: 200, // Space for price summary and checkout button
+  changeText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   cartItem: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: SPACING.lg,
-    marginBottom: SPACING.lg,
     flexDirection: 'row',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
+    paddingVertical: 12,
   },
   itemImageContainer: {
-    marginRight: SPACING.md,
+    position: 'relative',
+    marginRight: 12,
   },
   itemImage: {
     width: 60,
     height: 60,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+  },
+  vegIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  itemImageText: {
-    color: COLORS.text.white,
-    fontSize: 24,
-    fontWeight: '700',
+  vegDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.text.white,
   },
   itemDetails: {
     flex: 1,
-  },
-  itemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
+    marginRight: 12,
   },
   itemName: {
+    fontSize: 16,
+    fontWeight: '500',
     color: COLORS.text.primary,
-    ...TYPOGRAPHY.h5,
-    fontWeight: '600',
-    flex: 1,
-    marginRight: SPACING.sm,
-  },
-  restaurantName: {
-    color: COLORS.text.secondary,
-    ...TYPOGRAPHY.bodyMedium,
     marginBottom: 4,
   },
-  itemDescription: {
-    color: COLORS.text.tertiary,
-    ...TYPOGRAPHY.bodySmall,
-    marginBottom: SPACING.md,
+  itemVariant: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginBottom: 2,
   },
-  itemFooter: {
+  itemAddOns: {
+    fontSize: 12,
+    color: COLORS.text.tertiary,
+    marginBottom: 2,
+  },
+  itemInstructions: {
+    fontSize: 12,
+    color: COLORS.text.tertiary,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  itemPriceRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginRight: 8,
+  },
+  itemOriginalPrice: {
+    fontSize: 14,
+    color: COLORS.text.tertiary,
+    textDecorationLine: 'line-through',
+  },
+  itemActions: {
+    alignItems: 'flex-end',
+  },
+  removeButton: {
+    padding: 4,
+    marginBottom: 8,
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceLight,
-    borderRadius: 20,
-    paddingHorizontal: SPACING.xs,
+    backgroundColor: COLORS.background,
+    borderRadius: 6,
+    padding: 2,
   },
   quantityButton: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: SPACING.xs,
+    backgroundColor: COLORS.surface,
+    borderRadius: 4,
   },
   quantityText: {
-    color: COLORS.text.primary,
-    ...TYPOGRAPHY.bodyMedium,
+    fontSize: 14,
     fontWeight: '600',
+    color: COLORS.text.primary,
+    marginHorizontal: 12,
     minWidth: 20,
     textAlign: 'center',
   },
-  itemPrice: {
+  itemSeparator: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: 8,
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  addressDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  addressType: {
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.text.primary,
-    ...TYPOGRAPHY.h5,
-    fontWeight: '700',
+    marginBottom: 2,
   },
-  priceSummary: {
-    backgroundColor: COLORS.surface,
-    padding: SPACING.lg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  addressText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    lineHeight: 20,
   },
-  summaryRow: {
+  addressLandmark: {
+    fontSize: 12,
+    color: COLORS.text.tertiary,
+    marginTop: 2,
+  },
+  billDetails: {
+    marginTop: 8,
+  },
+  billRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    paddingVertical: 6,
   },
-  summaryLabel: {
+  billLabel: {
+    fontSize: 14,
     color: COLORS.text.secondary,
-    ...TYPOGRAPHY.bodyMedium,
   },
-  summaryValue: {
+  billValue: {
+    fontSize: 14,
     color: COLORS.text.primary,
-    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '500',
+  },
+  freeText: {
+    color: COLORS.success,
     fontWeight: '600',
   },
-  freeDeliveryInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surfaceLight,
-    padding: SPACING.sm,
-    borderRadius: 8,
-    marginBottom: SPACING.md,
-    gap: 6,
+  discountText: {
+    color: COLORS.success,
   },
-  freeDeliveryText: {
-    color: COLORS.text.secondary,
-    ...TYPOGRAPHY.bodySmall,
-    flex: 1,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: SPACING.md,
+  totalRow: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    marginTop: 8,
+    paddingTop: 12,
   },
   totalLabel: {
-    color: COLORS.text.primary,
-    ...TYPOGRAPHY.h4,
+    fontSize: 16,
     fontWeight: '600',
+    color: COLORS.text.primary,
   },
   totalValue: {
-    color: COLORS.text.primary,
-    ...TYPOGRAPHY.h3,
+    fontSize: 16,
     fontWeight: '700',
+    color: COLORS.text.primary,
   },
-  checkoutContainer: {
-    padding: SPACING.lg,
-    paddingBottom: SPACING.xl,
+  appliedCouponContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.success + '10',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.success + '30',
+  },
+  appliedCouponInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  appliedCouponText: {
+    fontSize: 14,
+    color: COLORS.success,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  removeCouponText: {
+    color: COLORS.error,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  couponInputContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  couponInput: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    marginRight: 8,
+  },
+  applyCouponInputButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyCouponInputText: {
+    color: COLORS.text.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  viewCouponsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.primary + '10',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+  },
+  viewCouponsText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  ruralFeaturesContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  ruralFeatureCard: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  ruralFeatureTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  ruralFeatureSubtitle: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    textAlign: 'center',
+  },
+  bottomSpacing: {
+    height: 100,
+  },
+  bottomBar: {
+    backgroundColor: COLORS.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingBottom: Platform.OS === 'ios' ? 35 : 16,
+  },
+  totalContainer: {
+    marginRight: 16,
+  },
+  bottomTotalLabel: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  bottomTotalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text.primary,
   },
   checkoutButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  checkoutGradient: {
-    paddingVertical: SPACING.lg,
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   checkoutButtonText: {
     color: COLORS.text.white,
-    ...TYPOGRAPHY.h4,
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  couponsList: {
+    flex: 1,
+    padding: 16,
+  },
+  couponItem: {
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  couponLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  couponCode: {
+    fontSize: 16,
     fontWeight: '700',
+    color: COLORS.primary,
     marginBottom: 4,
   },
-  checkoutSubtext: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    ...TYPOGRAPHY.bodyMedium,
+  couponTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 2,
   },
-  emptyState: {
+  couponDescription: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    lineHeight: 16,
+  },
+  applyCouponButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  applyCouponText: {
+    color: COLORS.text.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyCartContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: SPACING.xxl,
+    paddingHorizontal: 40,
   },
-  emptyStateTitle: {
-    color: COLORS.text.primary,
-    ...TYPOGRAPHY.h3,
+  emptyCartTitle: {
+    fontSize: 24,
     fontWeight: '600',
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.sm,
+    color: COLORS.text.primary,
+    marginTop: 20,
+    marginBottom: 8,
   },
-  emptyStateSubtitle: {
+  emptyCartSubtitle: {
+    fontSize: 16,
     color: COLORS.text.secondary,
-    ...TYPOGRAPHY.bodyMedium,
     textAlign: 'center',
-    marginBottom: SPACING.xl,
+    lineHeight: 24,
+    marginBottom: 32,
   },
-  emptyStateButton: {
+  continueShoppingButton: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
-    borderRadius: 25,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
-  emptyStateButtonText: {
+  continueShoppingText: {
     color: COLORS.text.white,
-    ...TYPOGRAPHY.bodyMedium,
+    fontSize: 16,
     fontWeight: '600',
   },
 }); 

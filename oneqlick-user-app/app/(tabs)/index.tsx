@@ -239,7 +239,6 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [address, setAddress] = useState('Getting location...');
-  const [cartItemCount, setCartItemCount] = useState(3);
   const [notificationCount, setNotificationCount] = useState(2);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   
@@ -339,15 +338,15 @@ export default function HomeScreen() {
     console.log('Notifications pressed');
   };
 
-  const handleCartPress = () => {
-    router.push('/cart/' as any);
-  };
-
   const handleQuickActionPress = (action: any) => {
     if (action.title === 'Restaurants') {
       router.push('/restaurants/' as any);
-    } else {
-      console.log('Quick action pressed:', action.title);
+    } else if (action.title === 'Groceries') {
+      console.log('Groceries pressed');
+    } else if (action.title === 'Medicine') {
+      console.log('Medicine pressed');
+    } else if (action.title === 'More') {
+      console.log('More options pressed');
     }
   };
 
@@ -492,47 +491,29 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Fixed Header with Location and Actions */}
+      {/* Header */}
       <View style={styles.header}>
-        <LinearGradient
-          colors={COLORS.gradient.primary}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerTop}>
-            {/* Location */}
+        <View style={styles.headerGradient}>
+          {/* Location and Notification Row */}
+          <View style={styles.locationRow}>
             <TouchableOpacity style={styles.locationContainer} onPress={handleLocationPress}>
-              <View style={styles.locationIcon}>
-                <Ionicons name="location" size={16} color={COLORS.text.white} />
-              </View>
-              <View style={styles.locationText}>
-                <Text style={styles.deliverTo}>Deliver to</Text>
-                <Text style={styles.currentLocation} numberOfLines={1}>{address}</Text>
-              </View>
+              <Ionicons name="location" size={20} color={COLORS.text.white} />
+              <Text style={styles.locationText} numberOfLines={1}>
+                {address}
+              </Text>
               <Ionicons name="chevron-down" size={16} color={COLORS.text.white} />
             </TouchableOpacity>
-
-            {/* Actions */}
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleNotificationPress}>
-                <Ionicons name="notifications-outline" size={20} color={COLORS.text.white} />
-                {notificationCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{notificationCount}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionButton} onPress={handleCartPress}>
-                <Ionicons name="bag-outline" size={20} color={COLORS.text.white} />
-                {cartItemCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{cartItemCount}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
+            
+            <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
+              <Ionicons name="notifications" size={24} color={COLORS.text.white} />
+              {notificationCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
       </View>
 
       {/* Search Bar - Outside Blue Container */}
@@ -632,37 +613,54 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Local Vendors Section */}
+        {/* Rural Features Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Local Vendors</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
+          <Text style={styles.sectionTitle}>Rural Features</Text>
+          <View style={styles.ruralFeaturesContainer}>
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="call-outline" size={24} color={COLORS.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Phone Orders</Text>
+              <Text style={styles.featureSubtitle}>Call to order</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="cash-outline" size={24} color={COLORS.success} />
+              </View>
+              <Text style={styles.featureTitle}>Cash on Delivery</Text>
+              <Text style={styles.featureSubtitle}>Pay when you receive</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.ruralFeatureCard}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="storefront-outline" size={24} color={COLORS.accent} />
+              </View>
+              <Text style={styles.featureTitle}>Local Vendors</Text>
+              <Text style={styles.featureSubtitle}>Support local business</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Local Vendors Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Local Vendors</Text>
           <View style={styles.localVendorsContainer}>
             <TouchableOpacity style={styles.localVendorCard}>
               <View style={styles.vendorIcon}>
-                <Ionicons name="bicycle-outline" size={24} color={COLORS.primary} />
+                <Ionicons name="leaf-outline" size={24} color={COLORS.success} />
               </View>
-              <Text style={styles.vendorTitle}>Street Food</Text>
-              <Text style={styles.vendorSubtitle}>Local favorites</Text>
+              <Text style={styles.vendorTitle}>Fresh Produce</Text>
+              <Text style={styles.vendorSubtitle}>Direct from farms</Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.localVendorCard}>
               <View style={styles.vendorIcon}>
-                <Ionicons name="home-outline" size={24} color={COLORS.secondary} />
+                <Ionicons name="restaurant-outline" size={24} color={COLORS.primary} />
               </View>
-              <Text style={styles.vendorTitle}>Home Kitchen</Text>
-              <Text style={styles.vendorSubtitle}>Homemade food</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.localVendorCard}>
-              <View style={styles.vendorIcon}>
-                <Ionicons name="leaf-outline" size={24} color={COLORS.accent} />
-              </View>
-              <Text style={styles.vendorTitle}>Organic</Text>
-              <Text style={styles.vendorSubtitle}>Fresh produce</Text>
+              <Text style={styles.vendorTitle}>Home Kitchens</Text>
+              <Text style={styles.vendorSubtitle}>Authentic home food</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -673,56 +671,77 @@ export default function HomeScreen() {
           <View style={styles.regionalContainer}>
             <TouchableOpacity style={styles.regionalCard}>
               <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&q=80' }}
+                source={{ uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80' }}
                 style={styles.regionalImage}
                 contentFit="cover"
               />
-              <View style={styles.regionalOverlay}>
-                <Text style={styles.regionalTitle}>Punjabi Dhaba</Text>
-                <Text style={styles.regionalSubtitle}>Butter Chicken, Dal Makhani</Text>
-              </View>
+              <LinearGradient
+                colors={['transparent', 'rgba(0, 0, 0, 0.6)']}
+                style={styles.regionalOverlay}
+              >
+                <Text style={styles.regionalTitle}>North Indian</Text>
+                <Text style={styles.regionalSubtitle}>Butter Chicken, Naan</Text>
+              </LinearGradient>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.regionalCard}>
               <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&q=80' }}
+                source={{ uri: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=80' }}
                 style={styles.regionalImage}
                 contentFit="cover"
               />
-              <View style={styles.regionalOverlay}>
+              <LinearGradient
+                colors={['transparent', 'rgba(0, 0, 0, 0.6)']}
+                style={styles.regionalOverlay}
+              >
                 <Text style={styles.regionalTitle}>South Indian</Text>
-                <Text style={styles.regionalSubtitle}>Idli, Dosa, Sambar</Text>
-              </View>
+                <Text style={styles.regionalSubtitle}>Dosa, Idli, Sambar</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Rural Features */}
+        {/* Language Support */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rural Features</Text>
-          <View style={styles.ruralFeaturesContainer}>
-            <TouchableOpacity style={styles.ruralFeatureCard}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="language-outline" size={24} color={COLORS.primary} />
+          <Text style={styles.sectionTitle}>Language Support</Text>
+          <View style={styles.languageContainer}>
+            <TouchableOpacity style={styles.languageCard}>
+              <Text style={styles.languageTitle}>हिंदी</Text>
+              <Text style={styles.languageSubtitle}>Hindi</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.languageCard}>
+              <Text style={styles.languageTitle}>தமிழ்</Text>
+              <Text style={styles.languageSubtitle}>Tamil</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.languageCard}>
+              <Text style={styles.languageTitle}>తెలుగు</Text>
+              <Text style={styles.languageSubtitle}>Telugu</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.languageCard}>
+              <Text style={styles.languageTitle}>বাংলা</Text>
+              <Text style={styles.languageSubtitle}>Bengali</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Offline Features */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Offline Features</Text>
+          <View style={styles.offlineContainer}>
+            <TouchableOpacity style={styles.offlineCard}>
+              <View style={styles.offlineIcon}>
+                <Ionicons name="download-outline" size={24} color={COLORS.primary} />
               </View>
-              <Text style={styles.featureTitle}>Local Language</Text>
-              <Text style={styles.featureSubtitle}>Hindi, Punjabi, Tamil</Text>
+              <Text style={styles.offlineTitle}>Offline Menu</Text>
+              <Text style={styles.offlineSubtitle}>Download for offline use</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.ruralFeatureCard}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="cash-outline" size={24} color={COLORS.secondary} />
+            <TouchableOpacity style={styles.offlineCard}>
+              <View style={styles.offlineIcon}>
+                <Ionicons name="phone-portrait-outline" size={24} color={COLORS.success} />
               </View>
-              <Text style={styles.featureTitle}>Cash on Delivery</Text>
-              <Text style={styles.featureSubtitle}>No online payment needed</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.ruralFeatureCard}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="call-outline" size={24} color={COLORS.accent} />
-              </View>
-              <Text style={styles.featureTitle}>Phone Orders</Text>
-              <Text style={styles.featureSubtitle}>Call to order</Text>
+              <Text style={styles.offlineTitle}>SMS Orders</Text>
+              <Text style={styles.offlineSubtitle}>Order via SMS</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -744,7 +763,7 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Try Shopping Cart</Text>
           <TouchableOpacity 
             style={[styles.demoButton, { backgroundColor: COLORS.success }]}
-            onPress={() => router.push('/cart/' as any)}
+            onPress={() => router.push('/(tabs)/cart' as any)}
           >
             <Text style={styles.demoButtonText}>View Shopping Cart</Text>
             <Ionicons name="bag-outline" size={20} color={COLORS.text.white} />
@@ -764,6 +783,8 @@ const styles = StyleSheet.create({
   },
   header: {
     zIndex: 10,
+    marginTop: Platform.OS === 'ios' ? 0 : SPACING.xl, // Add top margin for Android
+    backgroundColor: COLORS.primary,
   },
   headerGradient: {
     paddingTop: Platform.OS === 'ios' ? SPACING.xxl : SPACING.xxxl,
@@ -789,6 +810,11 @@ const styles = StyleSheet.create({
   },
   locationText: {
     flex: 1,
+    color: COLORS.text.white,
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 22,
+    marginLeft: SPACING.sm,
   },
   deliverTo: {
     color: 'rgba(255, 255, 255, 0.8)',
@@ -1288,5 +1314,105 @@ const styles = StyleSheet.create({
     color: COLORS.text.tertiary,
     ...TYPOGRAPHY.small,
     textAlign: 'center',
+  },
+  languageContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+  },
+  languageCard: {
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '45%', // Adjust as needed for 2 columns
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  languageTitle: {
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  languageSubtitle: {
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.small,
+    textAlign: 'center',
+  },
+  offlineContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+  },
+  offlineCard: {
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '45%', // Adjust as needed for 2 columns
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  offlineIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  offlineTitle: {
+    color: COLORS.text.primary,
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  offlineSubtitle: {
+    color: COLORS.text.tertiary,
+    ...TYPOGRAPHY.small,
+    textAlign: 'center',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  notificationButton: {
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: SPACING.md,
+    borderRadius: 12,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: COLORS.error,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.text.white,
+  },
+  notificationBadgeText: {
+    color: COLORS.text.white,
+    ...TYPOGRAPHY.small,
+    fontWeight: '700',
   },
 });
